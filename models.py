@@ -34,7 +34,7 @@ def SelfAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate =
       tf.expand_dims(
         tf.where(
           tf.cast(tf.linalg.band_part(tf.ones((tf.shape(x)[1],tf.shape(x)[1])), -1, 0), dtype = tf.bool),
-          0, tf.experimental.numpy.finfo(tf.float32).min),
+          tf.constant(0., dtype = tf.float32), tf.experimental.numpy.finfo(tf.float32).min),
         axis = 0),
       axis = 0))(k) # mask.shape = (1,1,seq,seq)
     qk = tf.keras.layers.Add()([qk, mask])
