@@ -47,7 +47,7 @@ def SelfAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate =
   return tf.keras.Model(inputs = inputs, outputs = results)
 
 def TransformerEncoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
-  inputs = tf.keras.Input((None,)) # inputs.shape = (batch, seq)
+  inputs = tf.keras.Input((None,), dtype = tf.int32) # inputs.shape = (batch, seq)
   results = tf.keras.layers.Embedding(dict_size, hidden_dim)(inputs) # results.shape = (batch, seq, 256)
   results = tf.keras.layers.Dropout(drop_rate)(results)
   for i in range(layers):
@@ -84,7 +84,7 @@ def CrossAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate 
 
 def TransformerDecoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
   code = tf.keras.Input((None, hidden_dim)) # code.shape = (batch, seq, 256)
-  inputs = tf.keras.Input((None,)) # inputs.shape = (batch, seq)
+  inputs = tf.keras.Input((None,), dtype = tf.int32) # inputs.shape = (batch, seq)
   results = tf.keras.layers.Embedding(dict_size, hidden_dim)(inputs) # results.shape = (batch, seq, hidden_dim)
   results = tf.keras.layers.Dropout(drop_rate)(results)
   for i in range(layers):
@@ -123,6 +123,10 @@ def Trainer(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False,
   return tf.keras.Model(inputs = (impulse, eis), outputs = (eis_update))
 
 if __name__ == "__main__":
+  inputs = tf.random.normal(shape = (1, 10, 256))
+  results = CrossAttention()(inputs)
+  print(results.shape)
+
   trainer = Trainer()
   impulse = tf.random.normal(shape = (1, 10, 2))
   eis = tf.random.normal(shape = (1, 5, 2))
