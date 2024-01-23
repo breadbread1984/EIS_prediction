@@ -33,7 +33,7 @@ def SelfAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate =
     mask = tf.keras.layers.Lambda(lambda x: tf.expand_dims(
       tf.expand_dims(
         tf.where(
-          tf.cast(tf.linalg.band_part(tf.ones((tf.shape(x)[1],tf.shape(x)[1])), -1, 0), dtype = tf.bool),
+          tf.cast(tf.linalg.band_part(tf.ones((tf.shape(x)[2],tf.shape(x)[2])), -1, 0), dtype = tf.bool),
           tf.constant(0., dtype = tf.float32), tf.experimental.numpy.finfo(tf.float32).min),
         axis = 0),
       axis = 0))(k) # mask.shape = (1,1,seq,seq)
@@ -124,9 +124,11 @@ def Trainer(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False,
 
 if __name__ == "__main__":
   inputs = tf.random.normal(shape = (1, 10, 256))
-  results = CrossAttention()(inputs)
+  results = SelfAttention()(inputs)
   print(results.shape)
-
+  inputs = tf.random.randint(minval = 0, maxval = 1024, shape = (2, 10))
+  results = TransformerEncoder()(inputs)
+  print(results.shape)
   trainer = Trainer()
   impulse = tf.random.normal(shape = (1, 10, 2))
   eis = tf.random.normal(shape = (1, 5, 2))
