@@ -126,7 +126,7 @@ if __name__ == "__main__":
   inputs = tf.random.normal(shape = (1, 10, 256))
   results = SelfAttention()(inputs)
   print(results.shape)
-  inputs = tf.random.randint(minval = 0, maxval = 1024, shape = (2, 10))
+  inputs = tf.random.uniform(minval = 0, maxval = 1024, shape = (2, 10), dtype = tf.int32)
   results = TransformerEncoder()(inputs)
   print(results.shape)
   trainer = Trainer()
