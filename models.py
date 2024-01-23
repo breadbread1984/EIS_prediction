@@ -33,7 +33,7 @@ def SelfAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate =
     mask = tf.keras.layers.Lambda(lambda x: tf.expand_dims(
       tf.expand_dims(
         tf.where(
-          tf.linalg.band_part(tf.ones((tf.shape(x)[1],tf.shyape(x)[1])), -1, 0),
+          tf.cast(tf.linalg.band_part(tf.ones((tf.shape(x)[1],tf.shape(x)[1])), -1, 0), dtype = tf.bool),
           0, tf.experimental.numpy.finfo(tf.float32).min),
         axis = 0),
       axis = 0))(k) # mask.shape = (1,1,seq,seq)
