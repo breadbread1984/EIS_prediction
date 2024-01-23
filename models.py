@@ -105,22 +105,22 @@ def TransformerDecoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bi
   return tf.keras.Model(inputs = (code, inputs), outputs = results)
 
 def Trainer(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
-  impulse = tf.keras.Input((None,2))
+  pulse = tf.keras.Input((None,2))
   eis = tf.keras.Input((None,2))
 
-  impulse_encoder = Encoder(dict_size, drop_rate)
+  pulse_encoder = Encoder(dict_size, drop_rate)
   eis_encoder = Encoder(dict_size, drop_rate)
   eis_decoder = Decoder(dict_size, drop_rate)
   # TODO: load pretrained weights
 
-  impulse_tokens = impulse_encoder(impulse) # impulse_tokens.shape = (batch, impulse_seq)
-  code = TransformerEncoder(dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)(impulse_tokens) # code.shape = (batch, impulse_seq, 256)
+  pulse_tokens = pulse_encoder(pulse) # pulse_tokens.shape = (batch, pulse_seq)
+  code = TransformerEncoder(dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)(pulse_tokens) # code.shape = (batch, pulse_seq, 256)
   eis_tokens = eis_encoder(eis) # eis_tokens.shape = (batch, eis_seq)
   results = TransformerDecoder(dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)([code, eis_tokens]) # results.shape = (batch, eis_seq, 256)
   results = tf.keras.layers.Dense(dict_size, activation = tf.keras.activations.softmax)(results) # results.shape = (batch, eis_seq, dict_size)
   results = tf.keras.layers.Lambda(lambda x: tf.math.argmax(x, axis = -1))(results) # results.shape = (batch, eis_seq)
   eis_update = eis_decoder(results) # eis_tokens.shape = (batch, eis_seq, 2)
-  return tf.keras.Model(inputs = (impulse, eis), outputs = (eis_update))
+  return tf.keras.Model(inputs = (pulse, eis), outputs = (eis_update))
 
 if __name__ == "__main__":
   inputs = tf.random.normal(shape = (1, 10, 256))
@@ -130,7 +130,7 @@ if __name__ == "__main__":
   results = TransformerEncoder()(inputs)
   print(results.shape)
   trainer = Trainer()
-  impulse = tf.random.normal(shape = (1, 10, 2))
+  pulse = tf.random.normal(shape = (1, 10, 2))
   eis = tf.random.normal(shape = (1, 5, 2))
-  eis_update = trainer([impulse, eis])
+  eis_update = trainer([pulse, eis])
   print(eis_update.shape)
