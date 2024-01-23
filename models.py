@@ -71,7 +71,7 @@ def CrossAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate 
   code_results = tf.keras.layers.Lambda(lambda x: tf.transpose(x, (0,2,3,1,4)))(code_results) # code_results.shape = (batch, 2, 8, seq, 32)
   k, v = tf.keras.layers.Lambda(lambda x: (x[:,0,...], x[:,1,...]))(code_results) # shape = (batch, 8, seq, 32)
   results = tf.keras.layers.Dense(hidden_dim, use_bias = use_bias)(inputs) # results.shape = (batch, seq, 256)
-  results = tf.keras.layers.Reshape((-1, 3, num_heads, hidden_dim // num_heads))(results) # results.shape = (batch, seq, 8, 32)
+  results = tf.keras.layers.Reshape((-1, num_heads, hidden_dim // num_heads))(results) # results.shape = (batch, seq, 8, 32)
   q = tf.keras.layers.Lambda(lambda x: tf.transpose(x, (0,2,1,3)))(results) # results.shape = (batch, 8, seq, 32)
   qk = tf.keras.layers.Lambda(lambda x, s: tf.matmul(x[0], tf.transpose(x[1], (0,1,3,2))) * s, arguments = {'s': (hidden_dim // num_heads) ** -0.5})([q, k]) # qk.shape = (batch, 8, seq, seq)
   attn = tf.keras.layers.Softmax(axis = -1)(qk)
