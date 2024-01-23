@@ -58,7 +58,7 @@ def TransformerEncoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bi
     skip = results
     results = tf.keras.layers.Normalization()(results)
     results = tf.keras.layers.Dense(4 * hidden_dim, activation = tf.keras.activations.gelu)(results)
-    resutls = tf.keras.layers.Dense(hidden_dim)(results)
+    results = tf.keras.layers.Dense(hidden_dim)(results)
     results = tf.keras.layers.Dropout(drop_rate)(results)
     results = tf.keras.layers.Add()([skip, results])
   return tf.keras.Model(inputs = inputs, outputs = results)
