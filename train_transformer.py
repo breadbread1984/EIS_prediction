@@ -3,6 +3,7 @@
 from os import listdir, mkdir
 from os.path import exists, join,splitext
 from absl import app, flags
+import numpy as np
 import tensorflow as tf
 from models import Trainer
 
