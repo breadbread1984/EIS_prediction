@@ -31,7 +31,7 @@ def parse_function(serialized_example):
 
 def main(unused_argv):
   trainer = Trainer()
-  optmizer = tf.keras.optimizers.Adam(FLAGS.lr)
+  optimizer = tf.keras.optimizers.Adam(FLAGS.lr)
 
   trainset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
 
