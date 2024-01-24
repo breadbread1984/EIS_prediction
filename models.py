@@ -22,6 +22,12 @@ def Decoder(dict_size = 1024, drop_rate = 0.1):
   results = tf.keras.layers.Dense(2)(results)
   return tf.keras.Model(inputs = inputs, outputs = results)
 
+def Trainer(dict_size = 1024, drop_rate = 0.1):
+  inputs = tf.keras.Input((None, 2))
+  code = Encoder(dict_size, drop_rate)(inputs)
+  results = Decoder(dict_size, drop_rate)(code)
+  return tf.keras.Model(inputs = inputs, outputs = results)
+
 def SelfAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate = 0.1, is_causal = True):
   inputs = tf.keras.Input((None, hidden_dim)) # inputs.shape = (batch, seq, 256)
   results = tf.keras.layers.Dense(hidden_dim * 3, use_bias = use_bias)(inputs) # results.shape = (batch, seq, 3 * 256)
