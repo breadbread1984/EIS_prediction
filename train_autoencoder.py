@@ -22,12 +22,12 @@ def parse_function(serialized_example):
       'x': tf.io.FixedLenFeature((), dtype = tf.string),
     })
   if FLAGS.type == 'pulse':
-    x = tf.io.parse_tensor(feature['x'], out_type = tf.float32)
+    x = tf.io.parse_tensor(feature['x'], out_type = tf.float64)
     x = tf.reshape(x, (99,2))
   else:
-    x = tf.io.parse_tensor(feature['x'], out_type = tf.float32)
+    x = tf.io.parse_tensor(feature['x'], out_type = tf.float64)
     x = tf.reshape(x, (51,2))
-  return x, x
+  return tf.cast(x, dtype = tf.float32), tf.cast(x, dtype = tf.float32)
 
 def main(unused_argv):
   trainer = Trainer()
