@@ -11,7 +11,7 @@ FLAGS = flags.FLAGS
 def add_options():
   flags.DEFINE_float('lr', default = 1e-3, help = 'learning rate')
   flags.DEFINE_integer('batch_size', default = 8, help = 'batch size')
-  flags.DEFINE_integer('epoch', default = 200, help = 'epoch')
+  flags.DEFINE_integer('epoch', default = 20, help = 'epoch')
   flags.DEFINE_string('dataset', default = None, help = 'path to dataset')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to checkpoint')
   flags.DEFINE_integer('save_freq', default = 10, help = 'save frequency')
@@ -61,7 +61,7 @@ def main(unused_argv):
       if optimizer.iterations % FLAGS.save_freq == 0:
         with log.as_default():
           tf.summary.scalar('loss', train_metric.result(), step = optimizer.iterations)
-  checkpoint.save(join(FLAGS.ckpt, 'ckpt'))
+    checkpoint.save(join(FLAGS.ckpt, 'ckpt'))
   np.save('sos.npy', sos.numpy())
 
 if __name__ == "__main__":
