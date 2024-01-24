@@ -22,7 +22,7 @@ def Decoder(dict_size = 1024, drop_rate = 0.1):
   results = tf.keras.layers.Dense(2)(results)
   return tf.keras.Model(inputs = inputs, outputs = results)
 
-def Trainer(dict_size = 1024, drop_rate = 0.1):
+def AETrainer(dict_size = 1024, drop_rate = 0.1):
   inputs = tf.keras.Input((None, 2))
   code = Encoder(dict_size, drop_rate)(inputs)
   results = Decoder(dict_size, drop_rate)(code)

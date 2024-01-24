@@ -4,7 +4,7 @@ from os import listdir, mkdir
 from os.path import exists, join, splitext
 from absl import app, flags
 import tensorflow as tf
-from models import Trainer
+from models import AETrainer
 
 FLAGS = flags.FLAGS
 
@@ -30,7 +30,7 @@ def parse_function(serialized_example):
   return tf.cast(x, dtype = tf.float32), tf.cast(x, dtype = tf.float32)
 
 def main(unused_argv):
-  trainer = Trainer()
+  trainer = AETrainer()
   optimizer = tf.keras.optimizers.Adam(FLAGS.lr)
   dataset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
   for epoch in range(FLAGS.epoch):
