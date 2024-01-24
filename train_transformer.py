@@ -47,8 +47,8 @@ def main(unused_argv):
     train_metric = tf.keras.metrics.Mean(name = 'loss')
     train_iter = iter(trainset)
     for pulse, label in train_iter:
-      eis = tf.tile(sos, (pulse.shape[0],1,1))
       with tf.GradientTape() as tape:
+        eis = tf.tile(sos, (pulse.shape[0],1,1))
         for i in range(51):
           pred = trainer([pulse, eis])
           eis = tf.concat([eis, pred[:,-1:,:]], axis = -2) # pulse.shape = (batch, seq + 1, 2)
