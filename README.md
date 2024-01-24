@@ -48,3 +48,8 @@ python3 train_autoencoder.py --dataset eis_dataset --type eis
 python3 train_transformer.py --dataset transformer_dataset
 ```
 
+## test model
+
+```shell
+python3 test.py --dataset <path/to/dataset>
+```
