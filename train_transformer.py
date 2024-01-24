@@ -46,7 +46,8 @@ def main(unused_argv):
     train_iter = iter(trainset)
     for sample, label in train_iter:
       pulse = sample
-      eis = tf.zeros((sample.shape[0], 1, 2))
+      sos = tf.Variable(0., shape = tf.TensorShape(sample.shape[0], 1, 2))
+      eis = sos
       with tf.GradientTape() as tape:
         for i in range(51):
           pred = trainer([pulse, eis])
@@ -54,13 +55,14 @@ def main(unused_argv):
         eis = eis[:,1:,:] # pred.shape = (batch, 51, 2)
         loss = tf.reduce_mean(tf.abs(eis - label))
       train_metric.update_state(loss)
-      grads = tape.gradient(loss, trainer.trainable_variables)
-      optimizer.apply_gradients(zip(grads, trainer.trainable_variables))
+      grads = tape.gradient(loss, trainer.trainable_variables + [sos,])
+      optimizer.apply_gradients(zip(grads, trainer.trainable_variables + [sos,]))
       print('Step #%d epoch %d: loss %f' % (optimizer.iterations, epoch, train_metric.result()))
       if optimizer.iterations % FLAGS.save_freq == 0:
         with log.as_default():
           tf.summary.scalar('loss', train_metric.result(), step = optimizer.iterations)
   checkpoint.save(join(FLAGS.ckpt, 'ckpt'))
+  np.save('sos.npy', sos.numpy())
 
 if __name__ == "__main__":
   add_options()
