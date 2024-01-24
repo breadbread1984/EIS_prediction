@@ -45,13 +45,14 @@ def main(unused_argv):
     train_metric = tf.keras.metrics.Mean(name = 'loss')
     train_iter = iter(trainset)
     for sample, label in train_iter:
-      inputs = sample
+      pulse = sample
+      eis = tf.zeros((sample.shape[0], 1, 2))
       with tf.GradientTape() as tape:
         for i in range(51):
-          pred = trainer(inputs)
-          inputs = tf.concat([inputs, pred[:,-1:,:]], axis = -2) # inputs.shape = (batch, seq + 1, 2)
-        pred = inputs[:,99:,:] # pred.shape = (batch, 51, 2)
-        loss = tf.reduce_mean(tf.abs(pred - label))
+          pred = trainer([pulse, eis])
+          eis = tf.concat([eis, pred[:,-1:,:]], axis = -2) # pulse.shape = (batch, seq + 1, 2)
+        eis = eis[:,1:,:] # pred.shape = (batch, 51, 2)
+        loss = tf.reduce_mean(tf.abs(eis - label))
       train_metric.update_state(loss)
       grads = tape.gradient(loss, trainer.trainable_variables)
       optimizer.apply_gradients(zip(grads, trainer.trainable_veriables))
