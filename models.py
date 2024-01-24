@@ -110,7 +110,7 @@ def TransformerDecoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bi
     results = tf.keras.layers.Add()([skip, results])
   return tf.keras.Model(inputs = (code, inputs), outputs = results)
 
-def Trainer(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
+def Trainer(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 1, drop_rate = 0.1):
   pulse = tf.keras.Input((None,2))
   eis = tf.keras.Input((None,2))
 
