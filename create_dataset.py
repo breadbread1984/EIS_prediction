@@ -5,6 +5,7 @@ from shutil import rmtree
 from os import mkdir, listdir
 from os.path import join, exists, splitext
 import pickle
+import numpy as np
 import tensorflow as tf
 
 FLAGS = flags.FLAGS
