@@ -31,7 +31,7 @@ def parse_function(serialized_example):
 
 def main(unused_argv):
   trainer = Trainer()
-  sos = tf.Variable(tf.zeros((FLAGS.batch_size, 1, 2)))
+  sos = tf.Variable(tf.zeros((1, 1, 2)))
   optimizer = tf.keras.optimizers.Adam(FLAGS.lr)
   optimizer.build(trainer.trainable_variables + [sos,])
 
@@ -46,9 +46,8 @@ def main(unused_argv):
   for epoch in range(FLAGS.epoch):
     train_metric = tf.keras.metrics.Mean(name = 'loss')
     train_iter = iter(trainset)
-    for sample, label in train_iter:
-      pulse = sample
-      eis = sos
+    for pulse, label in train_iter:
+      eis = tf.tile(sos, (pulse.shape[0],1,1))
       with tf.GradientTape() as tape:
         for i in range(51):
           pred = trainer([pulse, eis])
