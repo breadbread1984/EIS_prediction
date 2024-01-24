@@ -55,7 +55,7 @@ def main(unused_argv):
         loss = tf.reduce_mean(tf.abs(eis - label))
       train_metric.update_state(loss)
       grads = tape.gradient(loss, trainer.trainable_variables)
-      optimizer.apply_gradients(zip(grads, trainer.trainable_veriables))
+      optimizer.apply_gradients(zip(grads, trainer.trainable_variables))
       print('Step #%d epoch %d: loss %f' % (optimizer.iterations, epoch, train_metric.result()))
       if optimizer.iterations % FLAGS.save_freq == 0:
         with log.as_default():
