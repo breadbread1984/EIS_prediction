@@ -31,7 +31,9 @@ def parse_function(serialized_example):
 
 def main(unused_argv):
   trainer = Trainer()
+  sos = tf.Variable(tf.zeros((FLAGS.batch_size, 1, 2)))
   optimizer = tf.keras.optimizers.Adam(FLAGS.lr)
+  optimizer.build(trainer.trainable_variables + [sos,])
 
   trainset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
 
@@ -46,7 +48,6 @@ def main(unused_argv):
     train_iter = iter(trainset)
     for sample, label in train_iter:
       pulse = sample
-      sos = tf.Variable(0., shape = tf.TensorShape(sample.shape[0], 1, 2))
       eis = sos
       with tf.GradientTape() as tape:
         for i in range(51):
