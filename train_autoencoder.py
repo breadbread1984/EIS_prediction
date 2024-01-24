@@ -32,7 +32,7 @@ def parse_function(serialized_example):
 def main(unused_argv):
   trainer = Trainer()
   optimizer = tf.keras.optimizers.Adam(FLAGS.lr)
-  dataset = tf.data.TFRecordDataset(FLAGS.dataset).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
+  dataset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'dataset.tfrecords')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
   for epoch in range(FLAGS.epoch):
     iterator = iter(dataset)
     for x, label in iterator:
