@@ -34,7 +34,7 @@ def main(unused_argv):
   dataset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
   trainer.compile(optimizer = tf.keras.optimizers.Adam(FLAGS.lr), loss = lambda label, pred: tf.reduce_mean(tf.abs(pred - label)))
   trainer.fit(dataset, epochs = FLAGS.epoch)
-  trainer.save_weight('trainer.keras')
+  trainer.save('trainer.keras')
 
 if __name__ == "__main__":
   add_options()
