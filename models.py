@@ -114,9 +114,15 @@ def Trainer(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False,
   pulse = tf.keras.Input((None,2))
   eis = tf.keras.Input((None,2))
 
-  pulse_encoder = Encoder(dict_size, drop_rate); pulse_encoder.load_weights('pulse_encoder.keras')
-  eis_encoder = Encoder(dict_size, drop_rate); eis_encoder.load_weights('eis_encoder.keras')
-  eis_decoder = Decoder(dict_size, drop_rate); eis_decoder.load_weights('eis_decoder.keras')
+  pulse_encoder = Encoder(dict_size, drop_rate)
+  pulse_encoder.load_weights('pulse_encoder.keras')
+  pulse_encoder.trainable = False
+  eis_encoder = Encoder(dict_size, drop_rate)
+  eis_encoder.load_weights('eis_encoder.keras')
+  eis_encoder.trainable = False
+  eis_decoder = Decoder(dict_size, drop_rate)
+  eis_decoder.load_weights('eis_decoder.keras')
+  eis_decoder.trainable = False
 
   pulse_tokens = pulse_encoder(pulse) # pulse_tokens.shape = (batch, pulse_seq)
   code = TransformerEncoder(dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)(pulse_tokens) # code.shape = (batch, pulse_seq, 256)
