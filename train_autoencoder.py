@@ -31,17 +31,9 @@ def parse_function(serialized_example):
 
 def main(unused_argv):
   trainer = AETrainer()
-  optimizer = tf.keras.optimizers.Adam(FLAGS.lr)
   dataset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
-  for epoch in range(FLAGS.epoch):
-    iterator = iter(dataset)
-    for x, label in iterator:
-      with tf.GradientTape() as tape:
-        sample = trainer(x)
-        loss = tf.reduce_mean(tf.abs(sample - label))
-      print(loss)
-      grads = tape.gradient(loss, trainer.trainable_variables)
-      optimizer.apply_gradients(zip(grads, trainer.trainable_variables))
+  trainer.compile(optimizer = tf.keras.optimizers.Adam(FLAGS.lr), loss = lambda label, pred: tf.reduce_mean(tf.abs(pred - label)))
+  trainer.fit(dataset, epochs = FLAGS.epoch)
   trainer.save_weight('trainer.keras')
 
 if __name__ == "__main__":
