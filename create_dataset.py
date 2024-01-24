@@ -25,8 +25,6 @@ def pulse_eis():
       data = pickle.load(f)
     for SOC, sample in data.items():
       if FLAGS.type == 'pulse':
-  results = tf.keras.layers.Lambda(lambda x, l, s: s ** 3 * tf.math.exp(-0.5 / l ** 2 * x), arguments = {'l': l, 's': sigma})(dist) # results.shape = (n1, n2)
-  return tf.keras.Model(inputs = (x1, x2), outputs = results)
         sample = tf.constant(np.stack([sample['Voltage'], sample['Current']], axis = -1))
       else:
         sample = tf.constant(np.stack([sample['Real'], sample['Imaginary']], axis = -1))
