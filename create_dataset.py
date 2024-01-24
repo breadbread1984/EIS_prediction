@@ -22,8 +22,12 @@ def pulse_eis():
     if ext != '.pkl': continue
     if FLAGS.type == 'pulse' and not stem.startswith('train_pulse') and not stem.startswith('test_pulse'): continue
     if FLAGS.type == 'eis' and not stem.startswith('train_eis'): continue
-    with open(join(FLAGS.input_dir, 'train_datasets', fname), 'rb') as f:
-      data = pickle.load(f)
+    if stem.startswith('train'):
+      with open(join(FLAGS.input_dir, 'train_datasets', fname), 'rb') as f:
+        data = pickle.load(f)
+    else:
+      with open(join(FLAGS.input_dir, 'test_datasets', fname), 'rb') as f:
+        data = pickle.load(f)
     for SOC, sample in data.items():
       if FLAGS.type == 'pulse':
         sample = tf.constant(np.stack([sample['Voltage'], sample['Current']], axis = -1))
