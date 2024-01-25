@@ -23,13 +23,13 @@ def main(unused_argv):
 
   output = open('submission.csv', 'w')
   output.write('test_data_number,soc(%),EIS_real,EIS_imaginary\n')
-  for f in tqdm(listdir(join(FLAGS.dataset, 'test_datasets'))):
+  for f in listdir(join(FLAGS.dataset, 'test_datasets')):
     stem, ext = splitext(f)
     if ext != '.pkl': continue
     test_num = int(stem.replace('test_pulse_', ''))
     with open(join(FLAGS.dataset, 'test_datasets', f), 'rb') as f:
       data = pickle.load(f)
-    for SOC, pulse_samples in data.items():
+    for SOC, pulse_samples in tqdm(data.items()):
       soc = SOC.replace('%SOC','')
       pulse = tf.expand_dims(tf.stack([pulse_samples['Voltage'], pulse_samples['Current']], axis = -1), axis = 0) # pulse.shape = (1, seq, 2)
       eis = tf.tile(sos, (pulse.shape[0], 1, 1))
