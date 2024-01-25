@@ -37,7 +37,7 @@ def main(unused_argv):
         eis = tf.concat([eis, pred[:,-1:,:]], axis = -2)
       eis = eis[:,1:,:][0]
       for e in eis:
-        output.write(','.join([str(test_num),soc,str(e[0]),str(e[1])]) + '\n')
+        output.write(','.join([str(test_num),soc,str(e[0].numpy().item()),str(e[1].numpy().item())]) + '\n')
   output.close()
 
 if __name__ == "__main__":
