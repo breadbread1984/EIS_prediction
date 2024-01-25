@@ -30,7 +30,7 @@ def main(unused_argv):
       data = pickle.load(f)
     for SOC, pulse_samples in data.items():
       soc = SOC.replace('%SOC','')
-      pulse = tf.expand_dims(tf.concat([pulse_samples['Voltage'], pulse_samples['Current']], axis = -1), axis = 0) # pulse.shape = (1, seq, 2)
+      pulse = tf.expand_dims(tf.stack([pulse_samples['Voltage'], pulse_samples['Current']], axis = -1), axis = 0) # pulse.shape = (1, seq, 2)
       eis = tf.tile(sos, (pulse.shape[0], 1, 1))
       for i in range(51):
         pred = trainer([pulse, eis])
