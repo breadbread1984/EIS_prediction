@@ -4,10 +4,13 @@ import tensorflow as tf
 
 def Encoder(dict_size = 1024, drop_rate = 0.1):
   inputs = tf.keras.Input((None, 2)) # inputs.shape = (batch, seq, 2)
-  results = tf.keras.layers.Dense(64, activation = tf.keras.activations.gelu)(inputs) # inputs.shape = (batch, seq, 64)
+  results = tf.keras.layers.LayerNormalization()(inputs)
+  results = tf.keras.layers.Dense(64, activation = tf.keras.activations.gelu)(results) # inputs.shape = (batch, seq, 64)
   results = tf.keras.layers.Dropout(drop_rate)(results)
+  results = tf.keras.layers.LayerNormalization()(results)
   results = tf.keras.layers.Dense(128, activation = tf.keras.activations.gelu)(results) # results.shape = (batch, seq, 128)
   results = tf.keras.layers.Dropout(drop_rate)(results)
+  results = tf.keras.layers.LayerNormalization()(results)
   results = tf.keras.layers.Dense(dict_size, activation = tf.keras.activations.softmax)(results) # results.shape = (batch, seq, 1000)
   results = tf.keras.layers.Lambda(lambda x: tf.math.argmax(x, axis = -1))(results) # results.shape = (batch, seq)
   return tf.keras.Model(inputs = inputs, outputs = results)
@@ -15,10 +18,13 @@ def Encoder(dict_size = 1024, drop_rate = 0.1):
 def Decoder(dict_size = 1024, drop_rate = 0.1):
   inputs = tf.keras.Input((None,), dtype = tf.int32) # inputs.shape = (batch, seq)
   results = tf.keras.layers.Lambda(lambda x, s: tf.one_hot(x, s), arguments = {'s': dict_size})(inputs) # results.shape = (batch, seq, 1000)
+  results = tf.keras.layers.LayerNormalization()(results)
   results = tf.keras.layers.Dense(128, activation = tf.keras.activations.gelu)(results) # results.shape = (batch, seq, 128)
   results = tf.keras.layers.Dropout(drop_rate)(results)
+  results = tf.keras.layers.LayerNormalization()(results)
   results = tf.keras.layers.Dense(64, activation = tf.keras.activations.gelu)(results) # results.shape = (batch, seq, 64)
   results = tf.keras.layers.Dropout(drop_rate)(results)
+  results = tf.keras.layers.LayerNormalization()(results)
   results = tf.keras.layers.Dense(2)(results)
   return tf.keras.Model(inputs = inputs, outputs = results)
 
@@ -58,11 +64,11 @@ def TransformerEncoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bi
   results = tf.keras.layers.Dropout(drop_rate)(results)
   for i in range(layers):
     skip = results
-    results = tf.keras.layers.Normalization()(results)
+    results = tf.keras.layers.LayerNormalization()(results)
     results = SelfAttention(hidden_dim, num_heads, use_bias, drop_rate, is_causal = False)(results)
     results = tf.keras.layers.Add()([skip, results])
     skip = results
-    results = tf.keras.layers.Normalization()(results)
+    results = tf.keras.layers.LayerNormalization()(results)
     results = tf.keras.layers.Dense(4 * hidden_dim, activation = tf.keras.activations.gelu)(results)
     results = tf.keras.layers.Dense(hidden_dim)(results)
     results = tf.keras.layers.Dropout(drop_rate)(results)
