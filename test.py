@@ -4,6 +4,7 @@ from absl import flags, app
 from os import mkdir, listdir
 from os.path import join, exists, splitext
 import pickle
+from tqdm import tqdm
 import numpy as np
 import tensorflow as tf
 from models import Trainer
@@ -22,7 +23,7 @@ def main(unused_argv):
 
   output = open('submission.csv', 'w')
   output.write('test_data_number,soc(%),EIS_real,EIS_imaginary\n')
-  for f in listdir(join(FLAGS.dataset, 'test_datasets')):
+  for f in tqdm(listdir(join(FLAGS.dataset, 'test_datasets'))):
     stem, ext = splitext(f)
     if ext != '.pkl': continue
     test_num = int(stem.replace('test_pulse_', ''))
