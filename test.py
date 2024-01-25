@@ -4,9 +4,10 @@ from absl import flags, app
 from os import mkdir, listdir
 from os.path import join, exists, splitext
 import pickle
+from tqdm import tqdm
 import numpy as np
 import tensorflow as tf
-from model import Trainer
+from models import Trainer
 
 FLAGS = flags.FLAGS
 
@@ -28,16 +29,16 @@ def main(unused_argv):
     test_num = int(stem.replace('test_pulse_', ''))
     with open(join(FLAGS.dataset, 'test_datasets', f), 'rb') as f:
       data = pickle.load(f)
-    for SOC, pulse_samples in data.items():
+    for SOC, pulse_samples in tqdm(data.items()):
       soc = SOC.replace('%SOC','')
-      pulse = tf.expand_dims(tf.concat([pulse_samples['Voltage'], pulse_samples['Current']], axis = -1), axis = 0) # pulse.shape = (1, seq, 2)
-      eis = sos
+      pulse = tf.expand_dims(tf.stack([pulse_samples['Voltage'], pulse_samples['Current']], axis = -1), axis = 0) # pulse.shape = (1, seq, 2)
+      eis = tf.tile(sos, (pulse.shape[0], 1, 1))
       for i in range(51):
         pred = trainer([pulse, eis])
         eis = tf.concat([eis, pred[:,-1:,:]], axis = -2)
       eis = eis[:,1:,:][0]
       for e in eis:
-        output.write(','.join([test_num,soc,e[0],e[1]]) + '\n')
+        output.write(','.join([str(test_num),soc,str(e[0].numpy().item()),str(e[1].numpy().item())]) + '\n')
   output.close()
 
 if __name__ == "__main__":
