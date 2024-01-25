@@ -5,6 +5,7 @@ from torch import nn
 
 class Encoder(nn.Module):
   def __init__(self, seq_len, dict_size = 1024, drop_rate = 0.1):
+    super(Encoder, self).__init__()
     self.layernorm1 = nn.LayerNorm([2, seq_len])
     self.layernorm2 = nn.LayerNorm([64, seq_len])
     self.layernorm3 = nn.LayerNorm([128, seq_len])
@@ -31,4 +32,7 @@ class Encoder(nn.Module):
     results = torch.argmax(results, dim = 1)
     return results
 
-
+class Decoder(nn.Module):
+  def __init__(self, seq_len, dict_size = 1024, drop_rate = 0.1):
+    super(Decoder, self).__init__()
+    self.
