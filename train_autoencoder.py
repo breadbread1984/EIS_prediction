@@ -33,9 +33,18 @@ def main(unused_argv):
   trainer = AETrainer()
   dataset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
   optimizer = tf.keras.optimizers.Adam(FLAGS.lr)
-  loss = [tf.keras.losses.MeanAbsoluteError()]
-  trainer.compile(optimizer = optimizer, loss = loss)
-  trainer.fit(dataset, epochs = FLAGS.epoch)
+  mae = tf.keras.losses.MeanAbsoluteError()
+  for epoch in range(FLAGS.epoch):
+    train_iter = iter(dataset)
+    train_metric = tf.keras.metrics.Mean(name = 'loss')
+    for sample, label in train_iter:
+      with tf.GradientTape() as tape:
+        pred = trainer(sample)
+        loss = mae(label, pred)
+      train_metric.update_state(loss)
+      grads = tape.gradient(loss, trainer.trainable_variables)
+      optimizer.apply_gradients(zip(grads, trainer.trainable_variables))
+    print('Epoch %d: loss %f' % (epoch, train_metric.result()))
   trainer.layers[1].save('%s_encoder.keras' % FLAGS.type)
   trainer.layers[2].save('%s_decoder.keras' % FLAGS.type)
 
