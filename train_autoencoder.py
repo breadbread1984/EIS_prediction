@@ -32,7 +32,7 @@ def parse_function(serialized_example):
 def main(unused_argv):
   trainer = AETrainer()
   dataset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
-  trainer.compile(optimizer = tf.keras.optimizers.Adam(FLAGS.lr), loss = lambda label, pred: tf.reduce_mean(tf.abs(pred - label)))
+  trainer.compile(optimizer = tf.keras.optimizers.Adam(FLAGS.lr), loss = tf.keras.losses.MeanAbsoluteError())
   trainer.fit(dataset, epochs = FLAGS.epoch)
   trainer.layers[1].save('%s_encoder.keras' % FLAGS.type)
   trainer.layers[2].save('%s_decoder.keras' % FLAGS.type)
