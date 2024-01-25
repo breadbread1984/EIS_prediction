@@ -12,7 +12,7 @@ def add_options():
   flags.DEFINE_enum('type', enum_values = {'pulse', 'eis'}, default = 'pulse', help = 'which type of encoder decoder is trained')
   flags.DEFINE_float('lr', default = 1e-2, help = 'learning rate')
   flags.DEFINE_integer('batch_size', default = 8, help = 'batch size')
-  flags.DEFINE_integer('epoch', default = 200, help = 'epoch')
+  flags.DEFINE_integer('epoch', default = 600, help = 'epoch')
   flags.DEFINE_string('dataset', default = None, help = 'path to dataset')
 
 def parse_function(serialized_example):
