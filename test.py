@@ -6,7 +6,7 @@ from os.path import join, exists, splitext
 import pickle
 import numpy as np
 import tensorflow as tf
-from model import Trainer
+from models import Trainer
 
 FLAGS = flags.FLAGS
 
@@ -31,7 +31,7 @@ def main(unused_argv):
     for SOC, pulse_samples in data.items():
       soc = SOC.replace('%SOC','')
       pulse = tf.expand_dims(tf.concat([pulse_samples['Voltage'], pulse_samples['Current']], axis = -1), axis = 0) # pulse.shape = (1, seq, 2)
-      eis = sos
+      eis = tf.tile(sos, (pulse.shape[0], 1, 1))
       for i in range(51):
         pred = trainer([pulse, eis])
         eis = tf.concat([eis, pred[:,-1:,:]], axis = -2)
