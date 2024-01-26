@@ -76,7 +76,7 @@ class AETrainer(nn.Module):
     return results
 
 class SelfAttention(nn.Module):
-  def __init__(self, hiddem_dim = 256, num_heads = 8, use_bias = False, drop_rate = 0.1, is_causal = True):
+  def __init__(self, hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate = 0.1, is_causal = True):
     super(SelfAttention, self).__init__()
     self.num_heads = num_heads
     self.hidden_dim = hidden_dim
@@ -88,7 +88,7 @@ class SelfAttention(nn.Module):
   def forward(self, inputs):
     # inputs.shape = (batch, hidden_dim, seq_len)
     results = torch.transpose(inputs, 1, 2) # results.shape = (batch, seq_len, hidden_dim)
-    results = self.linear1(inputs) # results.shape = (batch, seq_len, 3 * hidden_dim)
+    results = self.linear1(results) # results.shape = (batch, seq_len, 3 * hidden_dim)
     b, s, _ = results.shape
     results = torch.reshape(results, (b, s, 3, self.num_heads, self.hidden_dim // self.num_heads)) # results.shape = (batch, seq_len, 3, head_num, hidden_dim // head_num)
     results = torch.permute(results, (0,2,3,1,4)) # results.shape = (batch, 3, head_num, seq_len, hidden_dim // head_num)
@@ -96,7 +96,7 @@ class SelfAttention(nn.Module):
     qk = torch.matmul(q, torch.transpose(k, 2,3)) * (self.hidden_dim // self.num_heads) ** -0.5 # qk.shape = (batch, head_num, seq_len, seq_len)
     if self.is_causal:
       mask = torch.unsqueeze(torch.unsqueeze(torch.tril(torch.ones(s,s)), 0), 0) # mask.shape = (1,1,seq_len, seq_len)
-      mask = torch.where(mask, 0., torch.finfo(torch.float32).min)
+      mask = torch.where(mask.to(torch.bool), 0., torch.finfo(torch.float32).min)
       qk = qk + mask
     attn = F.softmax(qk, dim = -1)
     attn = self.dropout(attn) # attn.shape = (batch, head_num, seq_len, seq_len)
@@ -111,4 +111,8 @@ if __name__ == "__main__":
   aetrainer = AETrainer(55)
   inputs = torch.randn(4,2,55).to(torch.float32)
   results = aetrainer(inputs)
+  print(results.shape)
+  sa = SelfAttention()
+  inputs = torch.randn(4, 256, 55)
+  results = sa(inputs)
   print(results.shape)
