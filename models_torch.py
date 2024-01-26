@@ -107,6 +107,39 @@ class SelfAttention(nn.Module):
     results = torch.transpose(results, 1, 2) # results.shape = (batch, hidden_dim, seq_len)
     return results
 
+class TransformerEncoder(nn.Module):
+  def __init__(self, seq_len, dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
+    super(TransformerEncoder, self).__init__()
+    self.embed = nn.Embedding(dict_size, hidden_dim)
+    self.dropout = nn.Dropout(drop_rate)
+    modules = dict()
+    for i in range(layers):
+      modules['layernorm1_%d' % i] = nn.LayerNorm([seq_len, hidden_dim])
+      modules['selfattention_%d' % i] = SelfAttention(hidden_dim, num_heads, use_bias, is_causal = False)
+      modules['layernorm2_%d' % i] = nn.LayerNorm([seq_len, hidden_dim])
+      modules['linear1_%d' % i] = nn.Linear(hidden_dim, 4 * hidden_dim)
+      modules['gelu_%d' % i] = nn.GELU()
+      modules['Linear2_%d' % i] = nn.Linear(4 * hidden_dim, hidden_dim)
+      modules['dropout_%d' % i] = nn.Dropout(drop_rate)
+    self.modules = nn.ModuleDict(modules)
+  def forward(self, inputs):
+    # inputs.shape = (batch, seq)
+    results = self.embed(inputs) # results.shape = (batch, seq, hidden_dim)
+    results = self.dropout(results)
+    for i in range(layers):
+      skip = results
+      results = self.modules['layernorm1_%d' % i](results)
+      results = self.modules['selfattention_%d' % i](results)
+      results = results + skip
+      skip = results
+      results = self.modules['layernorm2_%d' % i](results)
+      results = self.modules['linear1_%d' % i](results)
+      results = self.modules['gelu_%d' % i](results)
+      results = self.modules['linear2_%d' % i](results)
+      results = self.modules['dropout_%d' % i](results)
+      results = results + skip
+    return results
+
 if __name__ == "__main__":
   aetrainer = AETrainer(55)
   inputs = torch.randn(4,2,55).to(torch.float32)
@@ -115,4 +148,7 @@ if __name__ == "__main__":
   sa = SelfAttention()
   inputs = torch.randn(4, 256, 55)
   results = sa(inputs)
+  print(results.shape)
+  ten = TransformerEncoder(55)
+  results = ten(inputs)
   print(results.shape)
