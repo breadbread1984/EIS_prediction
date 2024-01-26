@@ -201,7 +201,6 @@ class TransformerDecoder(nn.Module):
   def forward(self, code, inputs):
     # code.shape = (batch, hidden_dim, key_len)
     # inputs.shape = (batch, query_len)
-    code = torch.transpose(code, 1, 2) # code.shape = (batch, key_len, hidden_dim)
     results = self.embed(inputs) # results.shape = (batch, query_len, dict_size)
     results = self.dropout(results)
     for i in range(self.layers):
