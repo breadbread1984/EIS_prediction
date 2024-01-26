@@ -80,6 +80,7 @@ class SelfAttention(nn.Module):
     super(SelfAttention, self).__init__()
     self.num_heads = num_heads
     self.hidden_dim = hidden_dim
+    self.is_causal = is_causal
 
     self.linear1 = nn.Linear(hidden_dim, 3 * hidden_dim, bias = use_bias)
     self.linear2 = nn.Linear(hidden_dim, hidden_dim, bias = use_bias)
@@ -93,4 +94,10 @@ class SelfAttention(nn.Module):
     results = torch.permute(results, (0,2,3,1,4)) # results.shape = (batch, 3, head_num, seq_len, hidden_dim // head_num)
     q,k,v = results[:,0,...], results[:,1,...], results[:,2,...] # shape = (batch, head_num, seq_len, hidden_dim // head_num)
     qk = torch.matmul(q, torch.transpose(k, 2,3)) * (self.hidden_dim // self.num_heads) ** -0.5 # qk.shape = (batch, head_num, seq_len, seq_len)
-
+    if self.is_causal:
+      mask = torch.unsqueeze(torch.unsqueeze(torch.tril(torch.ones(s,s)), 0), 0) # mask.shape = (1,1,seq_len, seq_len)
+      mask = torch.where(mask, 0., torch.finfo(torch.float32).min)
+      qk = qk + mask
+    attn = F.softmax(qk, dim = -1)
+    attn = self.dropout(attn)
+    qkv = torch.matmul()
