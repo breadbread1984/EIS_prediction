@@ -109,7 +109,7 @@ def TransformerDecoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bi
     results = CrossAttention(hidden_dim, num_heads, use_bias, drop_rate)([code, results])
     results = tf.keras.layers.Add()([skip, results])
     skip = results
-    results = tf.keras.layers.Normalization()(results)
+    results = tf.keras.layers.LayerNormalization()(results)
     results = tf.keras.layers.Dense(4 * hidden_dim, activation = tf.keras.activations.gelu)(results)
     results = tf.keras.layers.Dense(hidden_dim)(results)
     results = tf.keras.layers.Dropout(drop_rate)(results)
