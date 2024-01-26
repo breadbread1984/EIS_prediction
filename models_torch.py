@@ -99,5 +99,12 @@ class SelfAttention(nn.Module):
       mask = torch.where(mask, 0., torch.finfo(torch.float32).min)
       qk = qk + mask
     attn = F.softmax(qk, dim = -1)
-    attn = self.dropout(attn)
-    qkv = torch.matmul()
+    attn = self.dropout(attn) # attn.shape = (batch, head_num, seq_len, seq_len)
+    qkv = torch.transpose(torch.matmul(attn, v), 1, 2) # qkv.shape = (batch, seq_len, head_num, hidden_dim // head_num)
+    qkv = torch.reshape(qkv, (b, s, -1)) # qkv.shape = (batch, seq_len, hidden_dim)
+    results = self.linear2(qkv) # results.shape = (batch, seq_len, hidden_dim)
+    results = self.dropout(results) # results.shape = (batch, seq_len, hidden_dim)
+    results = torch.transpose(results, 1, 2) # results.shape = (batch, hidden_dim, seq_len)
+    return results
+
+class 
