@@ -20,7 +20,7 @@ class Encoder(nn.Module):
   def forward(self, inputs):
     # inputs.shape = (batch, 2, seq)
     results = torch.transpose(inputs, 1, 2) # results.shape = (batch, seq, 2)
-    results = self.layernorm1(inputs)
+    results = self.layernorm1(results)
     results = self.linear1(results) # results.shape = (batch, seq, 64)
     results = self.gelu1(results)
     results = self.dropout1(results)
@@ -51,7 +51,7 @@ class Decoder(nn.Module):
     self.gelu2 = nn.GELU()
   def forward(self, inputs):
     # inputs.shape = (batch, seq_len)
-    results = F.one_hot(inputs, self.dict_size) # results.shape = (batch, seq_len, dict_size)
+    results = F.one_hot(inputs, self.dict_size).to(torch.float32) # results.shape = (batch, seq_len, dict_size)
     results = self.layernorm1(results)
     results = self.linear1(results) # results.shape = (batch, seq_len, 128)
     results = self.gelu1(results)
@@ -107,4 +107,8 @@ class SelfAttention(nn.Module):
     results = torch.transpose(results, 1, 2) # results.shape = (batch, hidden_dim, seq_len)
     return results
 
-class 
+if __name__ == "__main__":
+  aetrainer = AETrainer(55)
+  inputs = torch.randn(4,2,55).to(torch.float32)
+  results = aetrainer(inputs)
+  print(results.shape)
