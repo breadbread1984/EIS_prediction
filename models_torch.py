@@ -121,24 +121,26 @@ class TransformerEncoder(nn.Module):
       modules['layernorm2_%d' % i] = nn.LayerNorm([seq_len, hidden_dim])
       modules['linear1_%d' % i] = nn.Linear(hidden_dim, 4 * hidden_dim)
       modules['gelu_%d' % i] = nn.GELU()
-      modules['Linear2_%d' % i] = nn.Linear(4 * hidden_dim, hidden_dim)
+      modules['linear2_%d' % i] = nn.Linear(4 * hidden_dim, hidden_dim)
       modules['dropout_%d' % i] = nn.Dropout(drop_rate)
-    self.modules = nn.ModuleDict(modules)
+    self.ops = nn.ModuleDict(modules)
   def forward(self, inputs):
     # inputs.shape = (batch, seq)
     results = self.embed(inputs) # results.shape = (batch, seq, hidden_dim)
     results = self.dropout(results)
     for i in range(self.layers):
       skip = results
-      results = self.modules['layernorm1_%d' % i](results)
-      results = self.modules['selfattention_%d' % i](results)
+      results = self.ops['layernorm1_%d' % i](results)
+      results = torch.transpose(results, 1, 2)
+      results = self.ops['selfattention_%d' % i](results)
+      results = torch.transpose(results, 1, 2)
       results = results + skip
       skip = results
-      results = self.modules['layernorm2_%d' % i](results)
-      results = self.modules['linear1_%d' % i](results)
-      results = self.modules['gelu_%d' % i](results)
-      results = self.modules['linear2_%d' % i](results)
-      results = self.modules['dropout_%d' % i](results)
+      results = self.ops['layernorm2_%d' % i](results)
+      results = self.ops['linear1_%d' % i](results)
+      results = self.ops['gelu_%d' % i](results)
+      results = self.ops['linear2_%d' % i](results)
+      results = self.ops['dropout_%d' % i](results)
       results = results + skip
     return results
 
