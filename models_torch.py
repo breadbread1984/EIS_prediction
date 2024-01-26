@@ -182,6 +182,8 @@ class CrossAttention(nn.Module):
 class TransformerDecoder(nn.Module):
   def __init__(self, seq_len, dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
     super(TransformerDecoder, self).__init__()
+    self.layers = layers
+
     self.embed = nn.Embedding(dict_size, hidden_dim)
     self.dropout = nn.Dropout(dropout)
     modules = dict()
@@ -195,8 +197,35 @@ class TransformerDecoder(nn.Module):
       modules['gelu_%d' % i] = nn.GELU()
       modules['linear2_%d' % i] = nn.Linear(4 * hidden_dim, hidden_dim)
       modules['dropout_%d' % i] = nn.Dropout(drop_rate)
+    self.ops = nn.ModuleDict(modules)
   def forward(self, code, inputs):
-    @s
+    # code.shape = (batch, hidden_dim, key_len)
+    # inputs.shape = (batch, query_len)
+    code = torch.transpose(code, 1, 2) # code.shape = (batch, key_len, hidden_dim)
+    results = self.embed(inputs) # results.shape = (batch, query_len, dict_size)
+    results = self.dropout(results)
+    for i in range(self.layers):
+      skip = results
+      results = self.ops['layernorm1_%d' % i](results)
+      results = torch.transpose(results, 1, 2)
+      results = self.ops['selfattention_%d' % i](results)
+      results = torch.transpose(results, 1, 2)
+      results = results + skip
+      skip = results
+      results = self.ops['layernorm2_%d' % i](results)
+      results = torch.transpose(results, 1, 2)
+      results = self.ops['crossattention_%d' % i](code, results)
+      results = torch.transpose(results, 1, 2)
+      results = results + skip
+      skip = results
+      results = self.ops['layernorm3_%d' % i](results)
+      results = self.ops['linear1_%d' % i](results)
+      results = self.ops['gelu_%d' % i](results)
+      results = self.ops['linear2_%d' % i](results)
+      results = self.ops['dropout_%d' % i](results)
+      results = results + skip
+    results = torch.transpose(results, 1, 2)
+    return results
 
 if __name__ == "__main__":
   import numpy as np
