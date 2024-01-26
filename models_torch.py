@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from os.path import exists
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -229,24 +230,27 @@ class TransformerDecoder(nn.Module):
 class Trainer(nn.Module):
   def __init__(self, key_len, query_len, dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 1, drop_rate = 0.1):
     super(Trainer, self).__init__()
-    self.pulse_encoder = torch.load('pulse_encoder.pth')
-    self.eis_encoder = torch.load('eis_encoder.pth')
-    self.eis_decoder = torch.load('eis_decoder.pth')
+    self.pulse_encoder = torch.load('pulse_encoder.pth') if exists('pulse_encoder.pth') else Encoder(key_len, dict_size, drop_rate)
+    self.eis_encoder = torch.load('eis_encoder.pth') if exists('eis_encoder.pth') else Encoder(query_len, dict_size, drop_rate)
+    self.eis_decoder = torch.load('eis_decoder.pth') if exists('eis_decoder.pth') else Decoder(query_len, dict_size, drop_rate)
+    for param in self.pulse_encoder.parameters(): param.requires_grad = False
+    for param in self.eis_encoder.parameters(): param.requires_grad = False
+    for param in self.eis_decoder.parameters(): param.requires_grad = False
     self.transformer_encoder = TransformerEncoder(key_len, dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)
     self.transformer_decoder = TransformerDecoder(query_len, dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)
     self.linear = nn.Linear(hidden_dim, dict_size)
   def forward(self, pulse, eis):
     # pulse.shape = (batch, 2, key_len)
     # eis.shape = (batch, 2, query_len)
-    pulse_tokens = self.pulse_encoder(pulse).detach() # pulse_tokens.shape = (batch, key_len)
+    pulse_tokens = self.pulse_encoder(pulse) # pulse_tokens.shape = (batch, key_len)
     code = self.transformer_encoder(pulse_tokens) # code.shape = (batch, hidden_dim, key_len)
-    eis_tokens = self.eis_encoder(eis).detach() # eis_tokens.shape = (batch, query_len)
+    eis_tokens = self.eis_encoder(eis) # eis_tokens.shape = (batch, query_len)
     results = self.transformer_decoder(code, eis_tokens) # results.shape = (batch, hidden_dim, query_len)
     results = torch.transpose(results, 1, 2) # resutls.shape = (batch, query_len, hidden_dim)
     results = self.linear(results) # results.shape = (batch, query_len, dict_size)
     results = F.softmax(results, dim = -1)
-    results = F.argmax(results, dim = -1) # results.shape = (batch, query_len)
-    eis_update = self.eis_decoder(results).detach() # eis_update.shape = (batch, 2, query_len)
+    results = torch.argmax(results, dim = -1) # results.shape = (batch, query_len)
+    eis_update = self.eis_decoder(results) # eis_update.shape = (batch, 2, query_len)
     return eis_update
 
 if __name__ == "__main__":
@@ -273,8 +277,10 @@ if __name__ == "__main__":
   inputs = torch.from_numpy(np.random.randint(low = 0, high = 1024, size = (4, 60)))
   results = tde(code, inputs)
   print(results.shape)
+  pulse = torch.randn(4, 2, 55)
+  eis = torch.randn(4, 2, 60)
   trainer = Trainer(55, 60)
-  results = trainer(code, inputs)
-  print(results.shape)
+  eis_update = trainer(pulse, eis)
+  print(eis_update.shape)
 
 
