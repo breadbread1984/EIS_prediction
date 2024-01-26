@@ -145,14 +145,14 @@ class TransformerEncoder(nn.Module):
     return results
 
 class CrossAttention(nn.Module):
-  def __init__(self, seq_len, hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate = 0.1):
+  def __init__(self, hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate = 0.1):
     super(CrossAttention, self).__init__()
     self.hidden_dim = hidden_dim
     self.num_heads = num_heads
 
-    self.linear1 = nn.Linear(hidden_dim, hidden_dim * 2, use_bias = use_bias)
-    self.linear2 = nn.Linear(hidden_dim, hidden_dim, use_bias = use_bias)
-    self.linear3 = nn.Linear(hidden_dim, hidden_dim, use_bias = use_bias)
+    self.linear1 = nn.Linear(hidden_dim, hidden_dim * 2, bias = use_bias)
+    self.linear2 = nn.Linear(hidden_dim, hidden_dim, bias = use_bias)
+    self.linear3 = nn.Linear(hidden_dim, hidden_dim, bias = use_bias)
     self.dropout1 = nn.Dropout(drop_rate)
     self.dropout2 = nn.Dropout(drop_rate)
   def forward(self, code, inputs):
@@ -191,4 +191,9 @@ if __name__ == "__main__":
   ten = TransformerEncoder(55)
   inputs = torch.from_numpy(np.random.randint(low = 0, high = 1024, size = (4, 55)))
   results = ten(inputs)
+  print(results.shape)
+  ca = CrossAttention()
+  code = torch.randn(4, 256, 50)
+  inputs = torch.randn(4, 256, 55)
+  results = ca(code, inputs)
   print(results.shape)
