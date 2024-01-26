@@ -185,7 +185,7 @@ class TransformerDecoder(nn.Module):
     self.layers = layers
 
     self.embed = nn.Embedding(dict_size, hidden_dim)
-    self.dropout = nn.Dropout(dropout_rate)
+    self.dropout = nn.Dropout(drop_rate)
     modules = dict()
     for i in range(layers):
       modules['layernorm1_%d' % i] = nn.LayerNorm([seq_len, hidden_dim])
