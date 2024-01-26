@@ -117,7 +117,7 @@ class TransformerEncoder(nn.Module):
     modules = dict()
     for i in range(layers):
       modules['layernorm1_%d' % i] = nn.LayerNorm([seq_len, hidden_dim])
-      modules['selfattention_%d' % i] = SelfAttention(hidden_dim, num_heads, use_bias, is_causal = False)
+      modules['selfattention_%d' % i] = SelfAttention(hidden_dim, num_heads, use_bias, drop_rate, is_causal = False)
       modules['layernorm2_%d' % i] = nn.LayerNorm([seq_len, hidden_dim])
       modules['linear1_%d' % i] = nn.Linear(hidden_dim, 4 * hidden_dim)
       modules['gelu_%d' % i] = nn.GELU()
@@ -178,6 +178,25 @@ class CrossAttention(nn.Module):
     results = self.dropout2(results)
     results = torch.transpose(results, 1, 2) # results.shape = (batch, hidden_dim, seq)
     return results
+
+class TransformerDecoder(nn.Module):
+  def __init__(self, seq_len, dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
+    super(TransformerDecoder, self).__init__()
+    self.embed = nn.Embedding(dict_size, hidden_dim)
+    self.dropout = nn.Dropout(dropout)
+    modules = dict()
+    for i in range(layers):
+      modules['layernorm1_%d' % i] = nn.LayerNorm([seq_len, hidden_dim])
+      modules['selfattention_%d' % i] = SelfAttention(hidden_dim, num_heads, use_bias, drop_rate, is_causal = True)
+      modules['layernorm2_%d' % i] = nn.LayerNorm([seq_len, hidden_dim])
+      modules['crossattention_%d' % i] = CrossAttention(hidden_dim, num_heads, use_bias, drop_rate)
+      modules['layernorm3_%d' % i] = nn.LayerNorm([seq_len, hidden_dim])
+      modules['linear1_%d' % i] = nn.Linear(hidden_dim, 4 * hidden_dim)
+      modules['gelu_%d' % i] = nn.GELU()
+      modules['linear2_%d' % i] = nn.Linear(4 * hidden_dim, hidden_dim)
+      modules['dropout_%d' % i] = nn.Dropout(drop_rate)
+  def forward(self, code, inputs):
+    @s
 
 if __name__ == "__main__":
   import numpy as np
