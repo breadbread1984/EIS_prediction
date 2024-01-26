@@ -142,6 +142,7 @@ class TransformerEncoder(nn.Module):
       results = self.ops['linear2_%d' % i](results)
       results = self.ops['dropout_%d' % i](results)
       results = results + skip
+    results = torch.transpose(results, 1, 2)
     return results
 
 class CrossAttention(nn.Module):
