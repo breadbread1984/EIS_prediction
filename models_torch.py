@@ -110,6 +110,8 @@ class SelfAttention(nn.Module):
 class TransformerEncoder(nn.Module):
   def __init__(self, seq_len, dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
     super(TransformerEncoder, self).__init__()
+    self.layers = layers
+
     self.embed = nn.Embedding(dict_size, hidden_dim)
     self.dropout = nn.Dropout(drop_rate)
     modules = dict()
@@ -126,7 +128,7 @@ class TransformerEncoder(nn.Module):
     # inputs.shape = (batch, seq)
     results = self.embed(inputs) # results.shape = (batch, seq, hidden_dim)
     results = self.dropout(results)
-    for i in range(layers):
+    for i in range(self.layers):
       skip = results
       results = self.modules['layernorm1_%d' % i](results)
       results = self.modules['selfattention_%d' % i](results)
@@ -141,6 +143,7 @@ class TransformerEncoder(nn.Module):
     return results
 
 if __name__ == "__main__":
+  import numpy as np
   aetrainer = AETrainer(55)
   inputs = torch.randn(4,2,55).to(torch.float32)
   results = aetrainer(inputs)
@@ -150,5 +153,6 @@ if __name__ == "__main__":
   results = sa(inputs)
   print(results.shape)
   ten = TransformerEncoder(55)
+  inputs = torch.from_numpy(np.random.randint(low = 0, high = 1024, size = (4, 55)))
   results = ten(inputs)
   print(results.shape)
