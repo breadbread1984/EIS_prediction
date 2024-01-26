@@ -144,6 +144,40 @@ class TransformerEncoder(nn.Module):
       results = results + skip
     return results
 
+class CrossAttention(nn.Module):
+  def __init__(self, seq_len, hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate = 0.1):
+    super(CrossAttention, self).__init__()
+    self.hidden_dim = hidden_dim
+    self.num_heads = num_heads
+
+    self.linear1 = nn.Linear(hidden_dim, hidden_dim * 2, use_bias = use_bias)
+    self.linear2 = nn.Linear(hidden_dim, hidden_dim, use_bias = use_bias)
+    self.linear3 = nn.Linear(hidden_dim, hidden_dim, use_bias = use_bias)
+    self.dropout1 = nn.Dropout(drop_rate)
+    self.dropout2 = nn.Dropout(drop_rate)
+  def forward(self, code, inputs):
+    # code.shape = (batch, hidden_dim, seq) inputs.shape = (batch, hidden_dim, seq)
+    code = torch.transpose(code, 1, 2) # code.shape = (batch, seq, hidden_dim)
+    code_results = self.linear1(code) # code_results.shape = (batch, seq, 2 * hidden_dim)
+    b, s, _ = code_results.shape
+    code_results = torch.reshape(code_results, (b, s, 2, self.num_heads, self.hidden_dim // self.num_heads)) # code_results.shape = (batch, seq, 2, num_heads, hidden_dim // num_heads)
+    code_results = torch.permute(code_results, (0,2,3,1,4)) # code_results.shape = (batch, 2, num_heads, seq, hidden_dim // num_heads)
+    k, v = code_results[:,0,...], code_results[:,1,...] # shape = (batch, num_heads, seq, hidden_dim // num_heads)
+    inputs = torch.transpose(inputs, 1, 2) # inputs.shape = (batch, seq, hidden_dim)
+    results = self.linear2(inputs) # results.shape = (batch, seq, hidden_dim)
+    b, s, _ = results.shape
+    results = torch.reshape(results, (b, s, self.num_heads, self.hidden_dim // self.num_heads)) # results.shape =(batch, seq, num_heads, hidden_dim // num_heads)
+    q = torch.permute(results, (0,2,1,3)) # q.shape = (batch, num_heads, seq, hidden_dim // num_heads)
+    qk = torch.matmul(q,torch.transpose(k, 2, 3)) * (self.hidden_dim // self.num_heads) ** -0.5 # qk.shape = (batch, num_heads, seq, seq)
+    attn = F.softmax(qk, dim = -1)
+    attn = self.dropout1(attn)
+    qkv = torch.transpose(torch.matmul(attn, v), 1, 2) # qkv.shape = (batch, seq, num_heads, hidden_dim // num_heads)
+    qkv = torch.reshape(qkv, (b, s, -1)) # qkv.shape = (batch, seq, hidden_dim)
+    results = self.linear3(qkv) # results.shape = (batch, seq, hidden_dim)
+    results = self.dropout2(results)
+    results = torch.transpose(results, 1, 2) # results.shape = (batch, hidden_dim, seq)
+    return results
+
 if __name__ == "__main__":
   import numpy as np
   aetrainer = AETrainer(55)
