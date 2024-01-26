@@ -185,7 +185,7 @@ class TransformerDecoder(nn.Module):
     self.layers = layers
 
     self.embed = nn.Embedding(dict_size, hidden_dim)
-    self.dropout = nn.Dropout(dropout)
+    self.dropout = nn.Dropout(dropout_rate)
     modules = dict()
     for i in range(layers):
       modules['layernorm1_%d' % i] = nn.LayerNorm([seq_len, hidden_dim])
@@ -246,3 +246,9 @@ if __name__ == "__main__":
   inputs = torch.randn(4, 256, 55)
   results = ca(code, inputs)
   print(results.shape)
+  tde = TransformerDecoder(55)
+  code = torch.randn(4, 256, 55).to(torch.float32)
+  inputs = torch.from_numpy(np.random.randint(low = 0, high = 2014, size = (4, 60)))
+  results = tde(code, inputs)
+  print(results.shape)
+
