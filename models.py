@@ -2,38 +2,6 @@
 
 import tensorflow as tf
 
-def Encoder(dict_size = 1024, drop_rate = 0.1):
-  inputs = tf.keras.Input((None, 2)) # inputs.shape = (batch, seq, 2)
-  results = tf.keras.layers.LayerNormalization()(inputs)
-  results = tf.keras.layers.Dense(64, activation = tf.keras.activations.gelu)(results) # inputs.shape = (batch, seq, 64)
-  results = tf.keras.layers.Dropout(drop_rate)(results)
-  results = tf.keras.layers.LayerNormalization()(results)
-  results = tf.keras.layers.Dense(128, activation = tf.keras.activations.gelu)(results) # results.shape = (batch, seq, 128)
-  results = tf.keras.layers.Dropout(drop_rate)(results)
-  results = tf.keras.layers.LayerNormalization()(results)
-  results = tf.keras.layers.Dense(dict_size, activation = tf.keras.activations.softmax)(results) # results.shape = (batch, seq, 1000)
-  results = tf.keras.layers.Lambda(lambda x: tf.math.argmax(x, axis = -1))(results) # results.shape = (batch, seq)
-  return tf.keras.Model(inputs = inputs, outputs = results)
-
-def Decoder(dict_size = 1024, drop_rate = 0.1):
-  inputs = tf.keras.Input((None,), dtype = tf.int32) # inputs.shape = (batch, seq)
-  results = tf.keras.layers.Lambda(lambda x, s: tf.one_hot(x, s), arguments = {'s': dict_size})(inputs) # results.shape = (batch, seq, 1000)
-  results = tf.keras.layers.LayerNormalization()(results)
-  results = tf.keras.layers.Dense(128, activation = tf.keras.activations.gelu)(results) # results.shape = (batch, seq, 128)
-  results = tf.keras.layers.Dropout(drop_rate)(results)
-  results = tf.keras.layers.LayerNormalization()(results)
-  results = tf.keras.layers.Dense(64, activation = tf.keras.activations.gelu)(results) # results.shape = (batch, seq, 64)
-  results = tf.keras.layers.Dropout(drop_rate)(results)
-  results = tf.keras.layers.LayerNormalization()(results)
-  results = tf.keras.layers.Dense(2)(results)
-  return tf.keras.Model(inputs = inputs, outputs = results)
-
-def AETrainer(dict_size = 1024, drop_rate = 0.1):
-  inputs = tf.keras.Input((None, 2))
-  code = Encoder(dict_size, drop_rate)(inputs)
-  results = Decoder(dict_size, drop_rate)(code)
-  return tf.keras.Model(inputs = inputs, outputs = results)
-
 def SelfAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate = 0.1, is_causal = True):
   inputs = tf.keras.Input((None, hidden_dim)) # inputs.shape = (batch, seq, 256)
   results = tf.keras.layers.Dense(hidden_dim * 3, use_bias = use_bias)(inputs) # results.shape = (batch, seq, 3 * 256)
@@ -59,9 +27,8 @@ def SelfAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate =
   return tf.keras.Model(inputs = inputs, outputs = results)
 
 def TransformerEncoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
-  inputs = tf.keras.Input((None,), dtype = tf.int32) # inputs.shape = (batch, seq)
-  results = tf.keras.layers.Embedding(dict_size, hidden_dim)(inputs) # results.shape = (batch, seq, 256)
-  results = tf.keras.layers.Dropout(drop_rate)(results)
+  inputs = tf.keras.Input((None, hidden_dim)) # inputs.shape = (batch, seq, hidden_dim)
+  results = inputs
   for i in range(layers):
     skip = results
     results = tf.keras.layers.LayerNormalization()(results)
@@ -96,9 +63,8 @@ def CrossAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate 
 
 def TransformerDecoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
   code = tf.keras.Input((None, hidden_dim)) # code.shape = (batch, seq, 256)
-  inputs = tf.keras.Input((None,), dtype = tf.int32) # inputs.shape = (batch, seq)
-  results = tf.keras.layers.Embedding(dict_size, hidden_dim)(inputs) # results.shape = (batch, seq, hidden_dim)
-  results = tf.keras.layers.Dropout(drop_rate)(results)
+  inputs = tf.keras.Input((None, hidden_dim)) # inputs.shape = (batch, seq, hidden_dim)
+  results = inputs
   for i in range(layers):
     skip = results
     results = tf.keras.layers.LayerNormalization()(results)
@@ -120,32 +86,17 @@ def Trainer(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False,
   pulse = tf.keras.Input((None,2))
   eis = tf.keras.Input((None,2))
 
-  pulse_encoder = Encoder(dict_size, drop_rate)
-  pulse_encoder.load_weights('pulse_encoder.keras')
-  pulse_encoder.trainable = False
-  eis_encoder = Encoder(dict_size, drop_rate)
-  eis_encoder.load_weights('eis_encoder.keras')
-  eis_encoder.trainable = False
-  eis_decoder = Decoder(dict_size, drop_rate)
-  eis_decoder.load_weights('eis_decoder.keras')
-  eis_decoder.trainable = False
+  pulse_embed = tf.keras.layers.Dense(hidden_dim)(pulse)
+  eis_embed = tf.keras.layers.Dense(hidden_dim)(eis)
 
-  pulse_tokens = pulse_encoder(pulse) # pulse_tokens.shape = (batch, pulse_seq)
-  code = TransformerEncoder(dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)(pulse_tokens) # code.shape = (batch, pulse_seq, 256)
-  eis_tokens = eis_encoder(eis) # eis_tokens.shape = (batch, eis_seq)
-  results = TransformerDecoder(dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)([code, eis_tokens]) # results.shape = (batch, eis_seq, 256)
+  code = TransformerEncoder(dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)(pulse_embed) # code.shape = (batch, pulse_seq, 256)
+  results = TransformerDecoder(dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)([code, eis_embed]) # results.shape = (batch, eis_seq, 256)
   results = tf.keras.layers.Dense(dict_size, activation = tf.keras.activations.softmax)(results) # results.shape = (batch, eis_seq, dict_size)
   results = tf.keras.layers.Lambda(lambda x: tf.math.argmax(x, axis = -1))(results) # results.shape = (batch, eis_seq)
-  eis_update = eis_decoder(results) # eis_tokens.shape = (batch, eis_seq, 2)
+  eis_update = tf.keras.layers.Dense(2)(results) # eis_tokens.shape = (batch, eis_seq, 2)
   return tf.keras.Model(inputs = (pulse, eis), outputs = (eis_update))
 
 if __name__ == "__main__":
-  inputs = tf.random.normal(shape = (1, 10, 256))
-  results = SelfAttention()(inputs)
-  print(results.shape)
-  inputs = tf.random.uniform(minval = 0, maxval = 1024, shape = (2, 10), dtype = tf.int32)
-  results = TransformerEncoder()(inputs)
-  print(results.shape)
   trainer = Trainer()
   pulse = tf.random.normal(shape = (1, 10, 2))
   eis = tf.random.normal(shape = (1, 5, 2))
