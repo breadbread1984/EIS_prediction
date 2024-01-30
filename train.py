@@ -33,7 +33,7 @@ def parse_function(serialized_example):
 def main(unused_argv):
   trainer = Trainer()
   sos = tf.Variable(tf.zeros((1, 1, 2)))
-  optimizer = tf.keras.optimizers.Adam(tf.keras.optimizers.schedules.ExponentialDecay(FLAGS.lr, decay_steps = 1000, decay_rate = 0.96))
+  optimizer = tf.keras.optimizers.Adam(tf.keras.optimizers.schedules.ExponentialDecay(FLAGS.lr, decay_steps = 100, decay_rate = 0.96))
   optimizer.build(trainer.trainable_variables + [sos,])
 
   trainset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
@@ -63,7 +63,7 @@ def main(unused_argv):
         with log.as_default():
           tf.summary.scalar('loss', train_metric.result(), step = optimizer.iterations)
     checkpoint.save(join(FLAGS.ckpt, 'ckpt'))
-  np.save('sos.npy', sos.numpy())
+    np.save('sos.npy', sos.numpy())
 
 if __name__ == "__main__":
   add_options()
