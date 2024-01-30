@@ -41,6 +41,7 @@ def main(unused_argv):
   if not exists(FLAGS.ckpt): mkdir(FLAGS.ckpt)
   checkpoint = tf.train.Checkpoint(model = trainer)
   checkpoint.restore(tf.train.latest_checkpoint(join(FLAGS.ckpt, 'ckpt')))
+  if exists('sos.npy'): sos.assign(tf.constant(np.load('sos.npy')))
 
   log = tf.summary.create_file_writer(FLAGS.ckpt)
 
