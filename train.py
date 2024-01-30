@@ -11,7 +11,7 @@ FLAGS = flags.FLAGS
 
 def add_options():
   flags.DEFINE_float('lr', default = 1e-3, help = 'learning rate')
-  flags.DEFINE_integer('batch_size', default = 8, help = 'batch size')
+  flags.DEFINE_integer('batch_size', default = 16, help = 'batch size')
   flags.DEFINE_integer('epoch', default = 20, help = 'epoch')
   flags.DEFINE_string('dataset', default = None, help = 'path to dataset')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to checkpoint')
@@ -33,7 +33,7 @@ def parse_function(serialized_example):
 def main(unused_argv):
   trainer = Trainer()
   sos = tf.Variable(tf.zeros((1, 1, 2)))
-  optimizer = tf.keras.optimizers.Adam(FLAGS.lr)
+  optimizer = tf.keras.optimizers.Adam(tf.keras.optimizers.schedules.ExponentalDecay(FLAGS.lr, decay_steps = 100000, decay_rate = 0.96))
   optimizer.build(trainer.trainable_variables + [sos,])
 
   trainset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
