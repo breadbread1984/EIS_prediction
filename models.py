@@ -91,8 +91,6 @@ def Trainer(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False,
 
   code = TransformerEncoder(dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)(pulse_embed) # code.shape = (batch, pulse_seq, 256)
   results = TransformerDecoder(dict_size, hidden_dim, num_heads, use_bias, layers, drop_rate)([code, eis_embed]) # results.shape = (batch, eis_seq, 256)
-  results = tf.keras.layers.Dense(dict_size, activation = tf.keras.activations.softmax)(results) # results.shape = (batch, eis_seq, dict_size)
-  results = tf.keras.layers.Lambda(lambda x: tf.math.argmax(x, axis = -1))(results) # results.shape = (batch, eis_seq)
   eis_update = tf.keras.layers.Dense(2)(results) # eis_tokens.shape = (batch, eis_seq, 2)
   return tf.keras.Model(inputs = (pulse, eis), outputs = (eis_update))
 
