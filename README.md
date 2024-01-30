@@ -10,39 +10,11 @@ download dataset from [the link](https://dataset-bohr-storage.dp.tech/lbg%2Fdata
 
 ## generate datasets
 
-### generate pulse dataset
-
 ```shell
-python3 create_dataset.py --input_dir <path/to/uncompressed/dataset> --output_dir pulse_dataset --type pulse
-```
-
-### generate EIS dataset
-
-```shell
-python3 create_dataset.py --input_dir <path/to/uncompressed/dataset> --output_dir eis_dataset --type eis
-```
-
-### generate dataset for transformer
-
-```shell
-python3 create_dataset.py --input_dir <path/to/uncompressed/dataset> --output_dir transformer_dataset --type transformer
+python3 create_dataset.py --input_dir <path/to/uncompressed/dataset> --output_dir transformer_dataset
 ```
 
 ## training models
-
-### training auto encoder for pulse data
-
-```shell
-python3 train_autoencoder.py --dataset pulse_dataset --type pulse
-```
-
-### training auto encoder for EIS data
-
-```shell
-python3 train_autoencoder.py --dataset eis_dataset --type eis
-```
-
-### training transformer
 
 ```shell
 python3 train_transformer.py --dataset transformer_dataset
