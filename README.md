@@ -17,7 +17,7 @@ python3 create_dataset.py --input_dir <path/to/uncompressed/dataset> --output_di
 ## training models
 
 ```shell
-python3 train_transformer.py --dataset transformer_dataset
+python3 train.py --dataset transformer_dataset
 ```
 
 ## test model
