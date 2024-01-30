@@ -13,32 +13,6 @@ FLAGS = flags.FLAGS
 def add_options():
   flags.DEFINE_string('input_dir', default = None, help = 'path to dataset')
   flags.DEFINE_string('output_dir', default = 'dataset', help = 'path to output directory')
-  flags.DEFINE_enum('type', enum_values = {'pulse', 'eis', 'transformer'}, default = 'pulse', help = 'dataset type')
-
-def pulse_eis():
-  writer = tf.io.TFRecordWriter(join(FLAGS.output_dir, 'trainset.tfrecord'))
-  for fname in (listdir(join(FLAGS.input_dir, 'train_datasets')) + listdir(join(FLAGS.input_dir, 'test_datasets'))):
-    stem, ext = splitext(fname)
-    if ext != '.pkl': continue
-    if FLAGS.type == 'pulse' and not stem.startswith('train_pulse') and not stem.startswith('test_pulse'): continue
-    if FLAGS.type == 'eis' and not stem.startswith('train_eis'): continue
-    if stem.startswith('train'):
-      with open(join(FLAGS.input_dir, 'train_datasets', fname), 'rb') as f:
-        data = pickle.load(f)
-    else:
-      with open(join(FLAGS.input_dir, 'test_datasets', fname), 'rb') as f:
-        data = pickle.load(f)
-    for SOC, sample in data.items():
-      if FLAGS.type == 'pulse':
-        sample = tf.constant(np.stack([sample['Voltage'], sample['Current']], axis = -1))
-      else:
-        sample = tf.constant(np.stack([sample['Real'], sample['Imaginary']], axis = -1))
-      trainsample = tf.train.Example(features = tf.train.Features(
-        feature = {
-          'x': tf.train.Feature(bytes_list = tf.train.BytesList(value = [tf.io.serialize_tensor(sample).numpy()]))
-        }))
-      writer.write(trainsample.SerializeToString())
-  writer.close()
 
 def transformer():
   writer = tf.io.TFRecordWriter(join(FLAGS.output_dir, 'trainset.tfrecord'))
@@ -65,10 +39,7 @@ def transformer():
 def main(unused_argv):
   if exists(FLAGS.output_dir): rmtree(FLAGS.output_dir)
   mkdir(FLAGS.output_dir)
-  if FLAGS.type in ['pulse', 'eis']:
-    pulse_eis()
-  else:
-    transformer()
+  transformer()
 
 if __name__ == "__main__":
   add_options()
