@@ -10,8 +10,8 @@ from models import Trainer
 FLAGS = flags.FLAGS
 
 def add_options():
-  flags.DEFINE_float('lr', default = 1e-3, help = 'learning rate')
-  flags.DEFINE_integer('batch_size', default = 16, help = 'batch size')
+  flags.DEFINE_float('lr', default = 1e-2, help = 'learning rate')
+  flags.DEFINE_integer('batch_size', default = 32, help = 'batch size')
   flags.DEFINE_integer('epoch', default = 20, help = 'epoch')
   flags.DEFINE_string('dataset', default = None, help = 'path to dataset')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to checkpoint')
