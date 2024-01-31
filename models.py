@@ -26,7 +26,7 @@ def SelfAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate =
   results = tf.keras.layers.Dropout(drop_rate)(results)
   return tf.keras.Model(inputs = inputs, outputs = results)
 
-def TransformerEncoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
+def TransformerEncoder(hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
   inputs = tf.keras.Input((None, hidden_dim)) # inputs.shape = (batch, seq, hidden_dim)
   results = inputs
   for i in range(layers):
@@ -61,7 +61,7 @@ def CrossAttention(hidden_dim = 256, num_heads = 8, use_bias = False, drop_rate 
   results = tf.keras.layers.Dropout(drop_rate)(results)
   return tf.keras.Model(inputs = (code, inputs), outputs = results) 
 
-def TransformerDecoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
+def TransformerDecoder(hidden_dim = 256, num_heads = 8, use_bias = False, layers = 2, drop_rate = 0.1):
   code = tf.keras.Input((None, hidden_dim)) # code.shape = (batch, seq, 256)
   inputs = tf.keras.Input((None, hidden_dim)) # inputs.shape = (batch, seq, hidden_dim)
   results = inputs
@@ -82,7 +82,7 @@ def TransformerDecoder(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bi
     results = tf.keras.layers.Add()([skip, results])
   return tf.keras.Model(inputs = (code, inputs), outputs = results)
 
-def Trainer(dict_size = 1024, hidden_dim = 256, num_heads = 8, use_bias = False, layers = 1, drop_rate = 0.1):
+def Trainer(hidden_dim = 256, num_heads = 8, use_bias = False, layers = 1, drop_rate = 0.1):
   pulse = tf.keras.Input((None,2))
   eis = tf.keras.Input((None,2))
 
