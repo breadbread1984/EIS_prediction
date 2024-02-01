@@ -7,7 +7,7 @@ import pickle
 from tqdm import tqdm
 import numpy as np
 import tensorflow as tf
-from models import Trainer
+from alternative_models import Trainer
 
 FLAGS = flags.FLAGS
 
@@ -19,6 +19,8 @@ def main(unused_argv):
   trainer = Trainer()
   checkpoint = tf.train.Checkpoint(model = trainer)
   checkpoint.restore(tf.train.latest_checkpoint(join(FLAGS.ckpt, 'ckpt')))
+  trainer.save('predictor.h5')
+  exit()
   sos = tf.constant(np.load('sos.npy'))
 
   output = open('submission.csv', 'w')
