@@ -38,6 +38,7 @@ def main(unused_argv):
   optimizer.build(trainer.trainable_variables + [sos,])
 
   trainset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
+  valset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'valset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
 
   if not exists(FLAGS.ckpt): mkdir(FLAGS.ckpt)
   checkpoint = tf.train.Checkpoint(model = trainer)
@@ -47,12 +48,13 @@ def main(unused_argv):
   log = tf.summary.create_file_writer(FLAGS.ckpt)
 
   for epoch in range(FLAGS.epoch):
+    # train
     train_metric = tf.keras.metrics.Mean(name = 'loss')
     train_iter = iter(trainset)
     for pulse, label in train_iter:
       with tf.GradientTape() as tape:
         eis = tf.tile(sos, (pulse.shape[0],1,1))
-        for i in range(51):
+        for i in range(35):
           pred = trainer([pulse, eis])
           eis = tf.concat([eis, pred[:,-1:,:]], axis = -2) # pulse.shape = (batch, seq + 1, 2)
         eis = eis[:,1:,:] # pred.shape = (batch, 51, 2)
@@ -66,7 +68,20 @@ def main(unused_argv):
           tf.summary.scalar('loss', train_metric.result(), step = optimizer.iterations)
     checkpoint.save(join(FLAGS.ckpt, 'ckpt'))
     np.save('sos.npy', sos.numpy())
-    trainer.save('predictor.keras')
+    # evaluate
+    eval_metric = tf.keras.metrics.MeanAbsoluteError(name = 'MAE')
+    eval_iter = iter(valset)
+    for pulse, label in val_iter:
+      eis = tf.tile(sos, (pulse.shape[0],1,1))
+      for i in range(35):
+        pred = trainer([pulse, eis])
+        eis = tf.concat([eis, pred[:,-1:,:]], axis = -2)
+      eis = eis[:,1:,:]
+      eval_metric.update_state(label, eis)
+    with log.as_default():
+      tf.summary.scalar('mean absolute error', eval_metric.result(), step = optimizer.iterations)
+    print('Step #%d epoch: %d MAE: %f' % (optimizer.iterations, epoch, eval_metric.result()))
+  checkpoint.save(join(FLAGS.ckpt, 'ckpt'))
 
 if __name__ == "__main__":
   add_options()
