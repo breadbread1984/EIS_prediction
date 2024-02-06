@@ -71,7 +71,7 @@ def main(unused_argv):
     # evaluate
     eval_metric = tf.keras.metrics.MeanAbsoluteError(name = 'MAE')
     eval_iter = iter(valset)
-    for pulse, label in val_iter:
+    for pulse, label in eval_iter:
       eis = tf.tile(sos, (pulse.shape[0],1,1))
       for i in range(35):
         pred = trainer([pulse, eis])
