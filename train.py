@@ -26,9 +26,9 @@ def parse_function(serialized_example):
       'y': tf.io.FixedLenFeature((), dtype = tf.string)
     })
   x = tf.io.parse_tensor(feature['x'], out_type = tf.float64)
-  x = tf.reshape(x, (99, 2))
+  x = tf.reshape(x, (1800, 2))
   y = tf.io.parse_tensor(feature['y'], out_type = tf.float64)
-  y = tf.reshape(y, (51, 2))
+  y = tf.reshape(y, (35, 2))
   return tf.cast(x, dtype = tf.float32), tf.cast(y, dtype = tf.float32)
 
 def main(unused_argv):
