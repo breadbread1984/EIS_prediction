@@ -12,7 +12,7 @@ class Scale(tf.keras.layers.Layer):
     # NOTE: inputs.shape = (batch, seq_len, 2)
     return inputs * self.scale + self.bias
 
-def Trainer(hidden_dim = 256, layers = 1):
+def Trainer(hidden_dim = 256, layers = 3):
   pulse = tf.keras.Input((None, 2)) # pulse.shape = (batch, seq_len, 2)
   pulse = tf.keras.layers.BatchNormalization()(pulse)
   pulse_embed = tf.keras.layers.Dense(hidden_dim)(pulse) # pulse_embed.shape = (batch, seq_len, channels)
