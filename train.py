@@ -33,16 +33,13 @@ def parse_function(serialized_example):
 
 def main(unused_argv):
   trainer = Trainer()
-  sos = tf.Variable(tf.zeros((1, 1, 2)))
   optimizer = tf.keras.optimizers.Adam(tf.keras.optimizers.schedules.ExponentialDecay(FLAGS.lr, decay_steps = 100, decay_rate = 0.96))
-  optimizer.build(trainer.trainable_variables + [sos,])
 
   trainset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
 
   if not exists(FLAGS.ckpt): mkdir(FLAGS.ckpt)
   checkpoint = tf.train.Checkpoint(model = trainer)
   checkpoint.restore(tf.train.latest_checkpoint(join(FLAGS.ckpt, 'ckpt')))
-  if exists('sos.npy'): sos.assign(tf.constant(np.load('sos.npy')))
 
   log = tf.summary.create_file_writer(FLAGS.ckpt)
 
@@ -51,15 +48,11 @@ def main(unused_argv):
     train_iter = iter(trainset)
     for pulse, label in train_iter:
       with tf.GradientTape() as tape:
-        eis = tf.tile(sos, (pulse.shape[0],1,1))
-        for i in range(51):
-          pred = trainer([pulse, eis])
-          eis = tf.concat([eis, pred[:,-1:,:]], axis = -2) # pulse.shape = (batch, seq + 1, 2)
-        eis = eis[:,1:,:] # pred.shape = (batch, 51, 2)
+        eis = trainer(pulse)
         loss = tf.reduce_mean(tf.abs(eis - label))
       train_metric.update_state(loss)
-      grads = tape.gradient(loss, trainer.trainable_variables + [sos,])
-      optimizer.apply_gradients(zip(grads, trainer.trainable_variables + [sos,]))
+      grads = tape.gradient(loss, trainer.trainable_variables)
+      optimizer.apply_gradients(zip(grads, trainer.trainable_variables))
       print('Step #%d epoch %d: loss %f lr %f' % (optimizer.iterations, epoch, train_metric.result(), optimizer.lr))
       if optimizer.iterations % FLAGS.save_freq == 0:
         with log.as_default():
