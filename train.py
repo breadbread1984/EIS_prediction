@@ -32,7 +32,7 @@ def parse_function(serialized_example):
 
 def main(unused_argv):
   trainer = Trainer()
-  optimizer = tf.keras.optimizers.Adam(tf.keras.optimizers.schedules.ExponentialDecay(FLAGS.lr, decay_steps = 100, decay_rate = 0.96))
+  optimizer = tf.keras.optimizers.Adam(tf.keras.optimizers.schedules.ExponentialDecay(FLAGS.lr, decay_steps = 50, decay_rate = 0.96))
   loss = [tf.keras.losses.MeanAbsoluteError()]
   metrics = [tf.keras.metrics.MeanAbsoluteError()]
 
