@@ -8,6 +8,7 @@ from tqdm import tqdm
 import numpy as np
 import tensorflow as tf
 from alternative_models import Trainer
+import matplotlib.pyplot as plt
 
 FLAGS = flags.FLAGS
 
@@ -36,16 +37,26 @@ def main(unused_argv):
   sos = tf.constant(np.load('sos.npy'))
 
   dataset = tf.data.TFRecordDataset([join(FLAGS.dataset, 'trainset.tfrecord'), join(FLAGS.dataset, 'valset.tfrecord')]).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
-  max_diff = tf.zeros((2,))
+  global_index = 0
+  max_dist = tf.constant(0, dtype = tf.float32)
   for pulse, label in dataset:
     eis = tf.tile(sos, (pulse.shape[0],1,1))
     for i in range(35):
       pred = trainer([pulse, eis])
       eis = tf.concat([eis, pred[:, -1:, :]], axis = -2)
-    eis = eis[:,1:,:]
-    diff = tf.reduce_max(tf.abs(eis - label), axis = (0,1))
-    max_diff = tf.maximum(max_diff, diff)
-  print("max real difference: ", max_diff[0], "max imaginary difference: ", max_diff[1])
+    eis = eis[:,1:,:] # eis.shape = (batch, 35, 2)
+    for p, l in zip(eis, label):
+      # p.shape = (35,2) l.shape = (35,2)
+      plt.cla()
+      plt.plot(p[:,0].numpy(),p[:,1].numpy(),label = 'prediction')
+      plt.plot(l[:,0].numpy(),l[:,1].numpy(),label = 'ground truth')
+      plt.legend()
+      plt.savefig('%d.png' % global_index)
+      global_index += 1
+    dist = tf.math.sqrt(tf.math.reduce_sum((eis - label) ** 2, axis = -1)) # diff.shape = (batch, 35)
+    m_dist = tf.math.reduce_max(dist, axis = (0,1)) # m_dist.shape = ()
+    max_dist = tf.maximum(max_dist, m_dist)
+  print("max distance: ", max_dist)
 
 if __name__ == "__main__":
   add_options()
