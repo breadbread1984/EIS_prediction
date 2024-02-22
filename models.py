@@ -2,23 +2,6 @@
 
 import tensorflow as tf
 
-def LSTM(hidden_dim = 256, layers = 1):
-  pulse = tf.keras.Input((None, 2))
-  eis = tf.keras.Input((None, 2))
-
-  pulse_embed = tf.keras.layers.Dense(hidden_dim)(pulse)
-  eis_embed = tf.keras.layers.Dense(hidden_dim)(eis)
-
-  rnn = tf.keras.layers.RNN([tf.keras.layers.LSTMCell(hidden_dim) for i in range(layers)], return_sequences = True, return_state = True)
-  results = rnn(pulse_embed)
-  state = results[1:]
-  results = rnn(eis_embed, initial_state = state)
-  hidden = results[0]
-
-  eis_update = tf.keras.layers.Dense(2)(hidden)
-
-  return tf.keras.Model(inputs = (pulse, eis), outputs = eis_update)
-
 class Scale(tf.keras.layers.Layer):
   def __init__(self):
     super(Scale, self).__init__()
@@ -33,12 +16,21 @@ class Trainer(tf.keras.Model):
   def __init__(self, hidden_dim = 256, layers = 1):
     super(Trainer, self).__init__()
     self.embed = tf.keras.layers.Embedding(1,2)
-    self.lstm = LSTM(hidden_dim = hidden_dim, layers = layers)
+    self.pulse_embed = tf.keras.layers.Dense(hidden_dim)
+    self.eis_embed = tf.keras.layers.Dense(hidden_dim)
+    self.lstm = tf.keras.layers.RNN([tf.keras.layers.LSTMCell(hidden_dim) for i in range(layers)], return_sequences = True, return_state = True)
+    self.eis_mlp = tf.keras.layers.Dense(2)
     self.scale = Scale()
   def call(self, pulse):
+    pulse_embed = self.pulse_embed(pulse)
+    results = self.lstm(pulse_embed)
+    state = results[1:]
     eis = self.embed(tf.zeros(shape = (pulse.shape[0],1))) # sos.shape = (batch,1,2)
     for i in range(35):
-      pred = self.lstm([pulse, eis]) # pred.shape = (batch, seq_len, 2)
+      eis_embed = self.eis_embed(eis)
+      results = self.lstm(eis_embed, initial_state = state) # pred.shape = (batch, seq_len, 2)
+      hidden = results[0]
+      pred = self.eis_mlp(hidden)
       eis = tf.concat([eis, pred[:,-1:,:]], axis = -2) # eis.shape = (batch, 1+eis_length, 2)
     eis = eis[:,1:,:]
     eis = self.scale(eis)
