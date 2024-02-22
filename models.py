@@ -12,35 +12,26 @@ class Scale(tf.keras.layers.Layer):
     # NOTE: inputs.shape = (batch, seq_len, 2)
     return inputs * self.scale + self.bias
 
-class Trainer(tf.keras.Model):
-  def __init__(self, hidden_dim = 256, layers = 1):
-    super(Trainer, self).__init__()
-    self.norm = tf.keras.layers.BatchNormalization()
-    self.embed = tf.keras.layers.Embedding(1,hidden_dim)
-    self.pulse_embed = tf.keras.layers.Dense(hidden_dim)
-    self.eis_embed = tf.keras.layers.Dense(hidden_dim)
-    self.lstm = tf.keras.layers.RNN([tf.keras.layers.LSTMCell(hidden_dim) for i in range(layers)], return_sequences = True, return_state = True)
-    self.eis_mlp = tf.keras.layers.Dense(2)
-    self.scale = Scale()
-  def call(self, pulse):
-    pulse = self.norm(pulse)
-    pulse_embed = self.pulse_embed(pulse) # pulse_embed.shape = (batch, seq_len, channel)
-    results = self.lstm(pulse_embed)
-    state = results[1:]
-    eis_embed = self.embed(tf.zeros(shape = (pulse.shape[0],1))) # sos.shape = (batch,1,hidden_dim)
-    for i in range(35):
-      results = self.lstm(eis_embed, initial_state = state) # pred.shape = (batch, seq_len, hidden_dim)
-      hidden = results[0]
-      eis_embed = tf.concat([eis_embed, hidden[:,-1:,:]], axis = -2) # eis.shape = (batch, 1+eis_length, hidden_dim)
-    pred = self.eis_mlp(eis_embed)
-    eis = pred[:,1:,:]
-    eis = self.scale(eis)
-    return eis
+def Trainer(hidden_dim = 256, layers = 1):
+  pulse = tf.keras.Input((None, 2)) # pulse.shape = (batch, seq_len, 2)
+  pulse = tf.keras.layers.BatchNormalization()(pulse)
+  pulse_embed = tf.keras.layers.Dense(hidden_dim)(pulse) # pulse_embed.shape = (batch, seq_len, channels)
+  lstm = tf.keras.layers.RNN([tf.keras.layers.LSTMCell(hidden_dim) for i in range(layers)], return_sequences = True, return_state = True)
+  state = lstm(pulse_embed)[1:]
+  sos = tf.keras.layers.Lambda(lambda x: tf.zeros(shape = (tf.shape(x)[0],1)))(pulse) # sos.shape = (batch,1)
+  eis_embed = tf.keras.layers.Embedding(1, hidden_dim)(sos) # eis_embed.shape = (batch,1,channels)
+  for i in range(35):
+    new_eis_embed = lstm(eis_embed, initial_state = state)[0] # results.shape = (batch, query_len, channels)
+    eis_embed = tf.keras.layers.Lambda(lambda x: tf.concat([x[0],x[1][:,-1:,:]], axis = -2))([eis_embed, new_eis_embed]) # eis_embed.shape = (batch, query_len + 1, channels)
+  pred = tf.keras.layers.Dense(2)(eis_embed) # pred.shape = (batch, quey_len, 2)
+  eis = tf.keras.layers.Lambda(lambda x: x[:,1:,:])(pred)
+  eis = Scale()(eis)
+  return tf.keras.Model(inputs = pulse, outputs = eis)
 
 if __name__ == "__main__":
   trainer = Trainer(layers = 2)
   import numpy as np
   pulse = np.random.normal(size = (1, 5, 2)).astype(np.float32)
-  eis = np.random.normal(size = (1, 3, 2)).astype(np.float32)
-  results = trainer([pulse, eis])
+  results = trainer(pulse)
+  trainer.save('trainer.h5')
   print(results.shape)
