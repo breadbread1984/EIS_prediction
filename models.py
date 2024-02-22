@@ -15,7 +15,7 @@ class Scale(tf.keras.layers.Layer):
 class Trainer(tf.keras.Model):
   def __init__(self, hidden_dim = 256, layers = 1):
     super(Trainer, self).__init__()
-    self.norm = tf.keras.layers.LayerNormalization()
+    self.norm = tf.keras.layers.BatchNormalization()
     self.embed = tf.keras.layers.Embedding(1,2)
     self.pulse_embed = tf.keras.layers.Dense(hidden_dim)
     self.eis_embed = tf.keras.layers.Dense(hidden_dim)
