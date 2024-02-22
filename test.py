@@ -7,7 +7,7 @@ import pickle
 from tqdm import tqdm
 import numpy as np
 import tensorflow as tf
-from alternative_models import Trainer
+from models import Trainer
 
 FLAGS = flags.FLAGS
 
@@ -19,9 +19,6 @@ def main(unused_argv):
   trainer = Trainer()
   checkpoint = tf.train.Checkpoint(model = trainer)
   checkpoint.restore(tf.train.latest_checkpoint(join(FLAGS.ckpt, 'ckpt')))
-  trainer.save('predictor.h5')
-  exit()
-  sos = tf.constant(np.load('sos.npy'))
 
   output = open('submission.csv', 'w')
   output.write('test_data_number,soc(%),EIS_real,EIS_imaginary\n')
@@ -34,11 +31,7 @@ def main(unused_argv):
     for SOC, pulse_samples in tqdm(data.items()):
       soc = SOC.replace('%SOC','')
       pulse = tf.expand_dims(tf.stack([pulse_samples['Voltage'], pulse_samples['Current']], axis = -1), axis = 0) # pulse.shape = (1, seq, 2)
-      eis = tf.tile(sos, (pulse.shape[0], 1, 1))
-      for i in range(51):
-        pred = trainer([pulse, eis])
-        eis = tf.concat([eis, pred[:,-1:,:]], axis = -2)
-      eis = eis[:,1:,:][0]
+      eis = trainer(pulse)
       for e in eis:
         output.write(','.join([str(test_num),soc,str(e[0].numpy().item()),str(e[1].numpy().item())]) + '\n')
   output.close()
