@@ -36,7 +36,7 @@ class Trainer(tf.keras.Model):
     self.lstm = LSTM(hidden_dim = hidden_dim, layers = layers)
     self.scale = Scale()
   def call(self, pulse):
-    sos = self.embed(tf.zeros(shape = (pulse.shape[0],1))) # sos.shape = (batch,1,2)
+    eis = self.embed(tf.zeros(shape = (pulse.shape[0],1))) # sos.shape = (batch,1,2)
     for i in range(35):
       pred = self.lstm([pulse, eis]) # pred.shape = (batch, seq_len, 2)
       eis = tf.concat([eis, pred[:,-1:,:]], axis = -2) # eis.shape = (batch, 1+eis_length, 2)
