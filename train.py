@@ -57,7 +57,6 @@ def main(unused_argv):
         with log.as_default():
           tf.summary.scalar('loss', train_metric.result(), step = optimizer.iterations)
     checkpoint.save(join(FLAGS.ckpt, 'ckpt'))
-    np.save('sos.npy', sos.numpy())
     trainer.save('predictor.keras')
 
 if __name__ == "__main__":
