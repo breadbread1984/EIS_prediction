@@ -15,6 +15,7 @@ class Scale(tf.keras.layers.Layer):
 class Trainer(tf.keras.Model):
   def __init__(self, hidden_dim = 256, layers = 1):
     super(Trainer, self).__init__()
+    self.norm = tf.keras.layers.LayerNormalization()
     self.embed = tf.keras.layers.Embedding(1,2)
     self.pulse_embed = tf.keras.layers.Dense(hidden_dim)
     self.eis_embed = tf.keras.layers.Dense(hidden_dim)
@@ -22,6 +23,7 @@ class Trainer(tf.keras.Model):
     self.eis_mlp = tf.keras.layers.Dense(2)
     self.scale = Scale()
   def call(self, pulse):
+    pulse = self.norm(pulse)
     pulse_embed = self.pulse_embed(pulse)
     results = self.lstm(pulse_embed)
     state = results[1:]
