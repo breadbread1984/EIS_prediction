@@ -34,17 +34,12 @@ def main(unused_argv):
   trainer = Trainer()
   checkpoint = tf.train.Checkpoint(model = trainer)
   checkpoint.restore(tf.train.latest_checkpoint(join(FLAGS.ckpt, 'ckpt')))
-  sos = tf.constant(np.load('sos.npy'))
 
   dataset = tf.data.TFRecordDataset([join(FLAGS.dataset, 'trainset.tfrecord'), join(FLAGS.dataset, 'valset.tfrecord')]).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
   global_index = 0
   max_dist = tf.constant(0, dtype = tf.float32)
   for pulse, label in dataset:
-    eis = tf.tile(sos, (pulse.shape[0],1,1))
-    for i in range(35):
-      pred = trainer([pulse, eis])
-      eis = tf.concat([eis, pred[:, -1:, :]], axis = -2)
-    eis = eis[:,1:,:] # eis.shape = (batch, 35, 2)
+    eis = trainer(pulse)
     for p, l in zip(eis, label):
       # p.shape = (35,2) l.shape = (35,2)
       plt.cla()
