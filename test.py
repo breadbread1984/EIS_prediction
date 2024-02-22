@@ -7,7 +7,7 @@ import pickle
 from tqdm import tqdm
 import numpy as np
 import tensorflow as tf
-from alternative_models import Trainer
+from models import Trainer
 import matplotlib.pyplot as plt
 
 FLAGS = flags.FLAGS
