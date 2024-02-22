@@ -5,8 +5,7 @@ from os.path import exists, join,splitext
 from absl import app, flags
 import numpy as np
 import tensorflow as tf
-#from models import Trainer
-from alternative_models import Trainer
+from models import Trainer
 
 FLAGS = flags.FLAGS
 
