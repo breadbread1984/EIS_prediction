@@ -32,8 +32,7 @@ def parse_function(serialized_example):
 
 def main(unused_argv):
   trainer = Trainer()
-  checkpoint = tf.train.Checkpoint(model = trainer)
-  checkpoint.restore(tf.train.latest_checkpoint(join(FLAGS.ckpt, 'ckpt')))
+  trainer.load_weight(join(FLAGS.ckpt, 'ckpt', 'variables', 'variables'))
 
   dataset = tf.data.TFRecordDataset([join(FLAGS.dataset, 'trainset.tfrecord'), join(FLAGS.dataset, 'valset.tfrecord')]).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
   global_index = 0
