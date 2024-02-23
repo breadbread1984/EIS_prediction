@@ -3,7 +3,7 @@
 import tensorflow as tf
 
 def Trainer(channels = 256, rate = 0.2, layers = 1):
-  inputs = tf.keras.Input((None, 2)) # pulse.shape = (batch, seq_len, 2)
+  inputs = tf.keras.Input((1800, 2)) # pulse.shape = (batch, seq_len, 2)
   results = inputs
   for i in range(layers):
     # spatial mix
