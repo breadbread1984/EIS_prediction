@@ -30,10 +30,15 @@ def parse_function(serialized_example):
   y = tf.reshape(y, (35, 2))
   return tf.cast(x, dtype = tf.float32), tf.cast(y, dtype = tf.float32)
 
+def loss(label,pred):
+  dists = tf.math.sqrt(tf.math.reduce_sum((label - pred)**2, axis = -1))
+  loss = tf.math.reduce_mean(dists)
+  return loss
+
 def main(unused_argv):
   trainer = Trainer()
   optimizer = tf.keras.optimizers.Adam(tf.keras.optimizers.schedules.ExponentialDecay(FLAGS.lr, decay_steps = 50, decay_rate = 0.96))
-  loss = [tf.keras.losses.MeanSquaredError(), tf.keras.losses.MeanAbsoluteError()]
+  loss = loss
   metrics = [tf.keras.metrics.MeanSquaredError(), tf.keras.losses.MeanAbsoluteError()]
 
   trainset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
