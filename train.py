@@ -10,12 +10,12 @@ from models import Trainer
 FLAGS = flags.FLAGS
 
 def add_options():
-  flags.DEFINE_float('lr', default = 1e-3, help = 'learning rate')
+  flags.DEFINE_float('lr', default = 1e-2, help = 'learning rate')
   flags.DEFINE_integer('batch_size', default = 32, help = 'batch size')
   flags.DEFINE_integer('epoch', default = 200, help = 'epoch')
   flags.DEFINE_string('dataset', default = None, help = 'path to dataset')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to checkpoint')
-  flags.DEFINE_integer('save_freq', default = 10, help = 'save frequency')
+  flags.DEFINE_integer('save_freq', default = 100, help = 'save frequency')
 
 def parse_function(serialized_example):
   feature = tf.io.parse_single_example(
@@ -37,7 +37,7 @@ def loss(label,pred):
 
 def main(unused_argv):
   trainer = Trainer()
-  optimizer = tf.keras.optimizers.Adam(tf.keras.optimizers.schedules.ExponentialDecay(FLAGS.lr, decay_steps = 50, decay_rate = 0.96))
+  optimizer = tf.keras.optimizers.Adam(tf.keras.optimizers.schedules.ExponentialDecay(FLAGS.lr, decay_steps = 200, decay_rate = 0.96))
   metrics = [tf.keras.metrics.MeanSquaredError(), tf.keras.losses.MeanAbsoluteError()]
 
   trainset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
