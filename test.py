@@ -32,7 +32,7 @@ def parse_function(serialized_example):
 
 def main(unused_argv):
   trainer = Trainer()
-  trainer.load_weight(join(FLAGS.ckpt, 'ckpt', 'variables', 'variables'))
+  trainer.load_weights(join(FLAGS.ckpt, 'ckpt', 'variables', 'variables'))
 
   dataset = tf.data.TFRecordDataset([join(FLAGS.dataset, 'trainset.tfrecord'), join(FLAGS.dataset, 'valset.tfrecord')]).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
   global_index = 0

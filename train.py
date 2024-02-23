@@ -39,7 +39,7 @@ def main(unused_argv):
   trainset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
   valset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'valset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
 
-  if exists(FLAGS.ckpt): trainer.load_weight(join(FLAGS.ckpt, 'ckpt', 'variables', 'variables'))
+  if exists(FLAGS.ckpt): trainer.load_weights(join(FLAGS.ckpt, 'ckpt', 'variables', 'variables'))
   trainer.compile(optimizer = optimizer, loss = loss, metrics = metrics)
   callbacks = [
     tf.keras.callbacks.TensorBoard(log_dir = FLAGS.ckpt),
