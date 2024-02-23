@@ -19,7 +19,7 @@ def Trainer(channels = 256, rate = 0.2, layers = 1):
     results = tf.keras.layers.LayerNormalization()(results)
     results = tf.keras.layers.Dense(2, activation=tf.keras.activations.gelu)(results)
     results = tf.keras.layers.Dropout(rate)(results)
-  results = tf.keras.layerd.Dense(2)(results)
+  results = tf.keras.layers.Dense(2)(results)
   return tf.keras.Model(inputs = inputs, outputs = results)
 
 if __name__ == "__main__":
