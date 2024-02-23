@@ -20,9 +20,11 @@ def Trainer(hidden_dim = 256, layers = 3):
   state = lstm(pulse_embed)[1:]
   sos = tf.keras.layers.Lambda(lambda x: tf.zeros(shape = (tf.shape(x)[0],1)))(pulse) # sos.shape = (batch,1)
   eis_embed = tf.keras.layers.Embedding(1, hidden_dim)(sos) # eis_embed.shape = (batch,1,channels)
+  latest_eis_embed = eis_embed
   for i in range(35):
-    new_eis_embed = lstm(eis_embed, initial_state = state)[0] # results.shape = (batch, query_len, channels)
-    eis_embed = tf.keras.layers.Lambda(lambda x: tf.concat([x[0],x[1][:,-1:,:]], axis = -2))([eis_embed, new_eis_embed]) # eis_embed.shape = (batch, query_len + 1, channels)
+    outputs = lstm(latest_eis_embed, initial_state = state) # results.shape = (batch, query_len, channels)
+    latest_eis_embed, state = outputs[0], outputs[1:]
+    eis_embed = tf.keras.layers.Lambda(lambda x: tf.concat([x[0],x[1]], axis = -2))([eis_embed, latest_eis_embed]) # eis_embed.shape = (batch, query_len + 1, channels)
   pred = tf.keras.layers.Dense(2)(eis_embed) # pred.shape = (batch, quey_len, 2)
   eis = tf.keras.layers.Lambda(lambda x: x[:,1:,:])(pred)
   eis = Scale()(eis)
