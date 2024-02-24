@@ -14,7 +14,6 @@ class Scale(tf.keras.layers.Layer):
 
 def Trainer(hidden_dim = 256, layers = 3):
   pulse = tf.keras.Input((None, 2)) # pulse.shape = (batch, seq_len, 2)
-  pulse = tf.keras.layers.BatchNormalization()(pulse)
   pulse_embed = tf.keras.layers.Dense(hidden_dim)(pulse) # pulse_embed.shape = (batch, seq_len, channels)
   lstm = tf.keras.layers.RNN([tf.keras.layers.LSTMCell(hidden_dim) for i in range(layers)], return_sequences = True, return_state = True)
   state = lstm(pulse_embed)[1:]
@@ -27,7 +26,6 @@ def Trainer(hidden_dim = 256, layers = 3):
     eis_embed = tf.keras.layers.Lambda(lambda x: tf.concat([x[0],x[1]], axis = -2))([eis_embed, latest_eis_embed]) # eis_embed.shape = (batch, query_len + 1, channels)
   pred = tf.keras.layers.Dense(2)(eis_embed) # pred.shape = (batch, quey_len, 2)
   eis = tf.keras.layers.Lambda(lambda x: x[:,1:,:])(pred)
-  eis = Scale()(eis)
   return tf.keras.Model(inputs = pulse, outputs = eis)
 
 if __name__ == "__main__":

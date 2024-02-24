@@ -38,7 +38,6 @@ def loss(label,pred):
 def main(unused_argv):
   trainer = Trainer()
   optimizer = tf.keras.optimizers.Adam(tf.keras.optimizers.schedules.ExponentialDecay(FLAGS.lr, decay_steps = 50, decay_rate = 0.96))
-  loss = loss
   metrics = [tf.keras.metrics.MeanSquaredError(), tf.keras.losses.MeanAbsoluteError()]
 
   trainset = tf.data.TFRecordDataset(join(FLAGS.dataset, 'trainset.tfrecord')).map(parse_function).prefetch(FLAGS.batch_size).shuffle(FLAGS.batch_size).batch(FLAGS.batch_size)
