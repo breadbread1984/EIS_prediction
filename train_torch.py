@@ -54,7 +54,7 @@ def main(unused_argv):
       if any(isnan(preds)):
         print('there is nan in prediction results!')
         continue
-      loss = mae(potential, preds)
+      loss = mae(eis, preds)
       if any(isnan(loss)):
         print('there is nan in loss!')
         continue
