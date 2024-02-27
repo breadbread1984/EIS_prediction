@@ -21,7 +21,7 @@ def add_options():
   flags.DEFINE_integer('batch_size', default = 32, help = 'batch size')
   flags.DEFINE_integer('save_freq', default = 100, help = 'save frequency')
   flags.DEFINE_integer('epoch', default = 600, help = 'epoch')
-  flags.DEFINE_float('lr', default = 1e-2, help = 'learning rate')
+  flags.DEFINE_float('lr', default = 1e-3, help = 'learning rate')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = ['cpu', 'cuda'], help = 'device')
 
 def main(unused_argv):
