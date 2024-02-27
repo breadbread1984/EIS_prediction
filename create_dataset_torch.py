@@ -7,7 +7,7 @@ from os.path import join, exists, splitext
 import pickle
 from openpyxl import load_workbook
 import numpy as np
-import torch
+from torch.utils.data import Dataset, DataLoader
 from uuid import uuid1
 
 FLAGS = flags.FLAGS
@@ -43,6 +43,21 @@ def main(unused_argv):
     is_train = np.random.multinomial(1, (9/10,1/10), size = ())[0]
     dir_path = 'train' if is_train else 'val'
     np.savez(join(FLAGS.output_dir, dir_path, str(uuid1()) + '.npz'), x = pulse, y = eis)
+
+class EISDataset(Dataset):
+  def __init__(self, dataset_dir):
+    super(EISDataset, self).__init__()
+    self.file_list = list()
+    for f in listdir(dataset_dir):
+      stem, ext = splitext(f)
+      if ext != '.npz': continue
+      self.file_list.append(join(dataset_dir, f))
+  def __len__(self):
+    return len(self.file_list)
+  def __getitem__(self, idx):
+    data = np.load(self.file_list[idx])
+    x, y = data['x'].astype(np.float32), data['y'].astype(np.float32)
+    return x, y
 
 if __name__ == "__main__":
   add_options()
