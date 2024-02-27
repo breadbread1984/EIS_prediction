@@ -61,7 +61,7 @@ def main(unused_argv):
       loss.backward()
       optimizer.step()
       global_steps = epoch * len(train_dataloader) + step
-      if global_step % 100 == 0:
+      if global_steps % 100 == 0:
         print('Step #%d Epoch #%d: loss %f, lr %f' % (global_steps, epoch, loss, scheduler.get_last_lr()[0]))
         tb_writer.add_scalar('loss', loss, global_steps)
       if global_steps % FLAGS.save_freq == 0:
