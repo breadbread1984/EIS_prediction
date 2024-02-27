@@ -45,7 +45,7 @@ def main(unused_argv):
     optimizer.load_state_dict(ckpt['optimizer'])
     scheduler = ckpt['scheduler']
     start_epoch = ckpt['epoch']
-  for epoch in range(start_epoch, FLAGS.epochs - start_epoch):
+  for epoch in range(start_epoch, FLAGS.epoch - start_epoch):
     model.train()
     for step, (x,y) in enumerate(train_dataloader):
       optimizer.zero_grad()
