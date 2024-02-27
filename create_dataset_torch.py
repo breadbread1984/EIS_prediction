@@ -42,7 +42,7 @@ def main(unused_argv):
     eis = np.stack([r,i], axis = -1) # eis.shape = (length, 2)
     is_train = np.random.multinomial(1, (9/10,1/10), size = ())[0]
     dir_path = 'train' if is_train else 'val'
-    np.savez(join(dir_path, str(uuid1()) + '.npz'), x = pulse, y = eis)
+    np.savez(join(FLAGS.output_dir, dir_path, str(uuid1()) + '.npz'), x = pulse, y = eis)
 
 if __name__ == "__main__":
   add_options()
