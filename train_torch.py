@@ -6,7 +6,7 @@ from os.path import exists, join
 from torch import device, save, load, no_grad, any, isnan, autograd
 from torch.nn import L1Loss
 from torch.optim import Adam
-from torch.optim.lr_scheduler import ConsineAnnealingWarmRestarts
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import torchmetrics
