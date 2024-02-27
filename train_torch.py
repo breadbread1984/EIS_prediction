@@ -76,7 +76,7 @@ def main(unused_argv):
       for x, y in eval_dataloader:
         pulse, eis = x.to(device(FLAGS.device)), y.to(device(FLAGS.device))
         preds = model(pulse)
-        print('evaluate: loss %f' % torchmetrics.functional.mean_absolute_error(preds, potential))
+        print('evaluate: loss %f' % torchmetrics.functional.mean_absolute_error(preds, eis))
 
 if __name__ == "__main__":
   add_options()
