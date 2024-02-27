@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import ConsineAnnealingWarmRestarts
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import torchmetrics
-from create_dataset torch import EISDataset
+from create_dataset_torch import EISDataset
 from models_torch import Predictor
 
 FLAGS = flags.FLAGS
