@@ -8,7 +8,7 @@ from tqdm import tqdm
 import numpy as np
 import torch
 from torch import device, load
-from torch.utils.data import Dataloader
+from torch.utils.data import DataLoader
 from models_torch import Trainer
 import matplotlib.pyplot as plt
 from create_dataset_torch import EISDataset
