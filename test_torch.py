@@ -7,6 +7,7 @@ import pickle
 from tqdm import tqdm
 import numpy as np
 import torch
+from torch import device, load
 from models_torch import Trainer
 import matplotlib.pyplot as plt
 from create_dataset_torch import EISDataset
@@ -23,13 +24,13 @@ def main(unused_argv):
   trainer.eval()
   ckpt = load(join(FLAGS.ckpt, 'model.pth'))
   trainer.load_state_dict(ckpt['state_dict'])
-  trainer.to(torch.device('cuda'))
+  trainer.to(device('cuda'))
   evalset = EISDataset(join(FLAGS.dataset, 'val'))
   dataset = DataLoader(evalset, batch_size = FLAGS.batch_size, shuffle = True, num_workers = FLAGS.batch_size)
   global_index = 0
   max_dist = tf.constant(0, dtype = tf.float32)
   for pulse, label in dataset:
-    pulse, label = pulse.to(torch.device('cuda')), label.to(torch.device('cuda'))
+    pulse, label = pulse.to(device('cuda')), label.to(device('cuda'))
     eis = trainer(pulse)
     eis = eis.detach().cpu().numpy()
     for p, l in zip(eis, label):
