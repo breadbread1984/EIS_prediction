@@ -45,7 +45,7 @@ def main(unused_argv):
     optimizer.load_state_dict(ckpt['optimizer'])
     scheduler = ckpt['scheduler']
     start_epoch = ckpt['epoch']
-  for epoch in range(start_epoch, FLAGS.epoch - start_epoch):
+  for epoch in range(start_epoch, FLAGS.epoch):
     model.train()
     for step, (x,y) in enumerate(train_dataloader):
       optimizer.zero_grad()
@@ -54,7 +54,8 @@ def main(unused_argv):
       if any(isnan(preds)):
         print('there is nan in prediction results!')
         continue
-      loss = mae(eis, preds)
+      loss = torch.max((eis - preds)**2) # dists.shape = (batch, )
+      #loss = mae(eis, preds)
       if any(isnan(loss)):
         print('there is nan in loss!')
         continue
