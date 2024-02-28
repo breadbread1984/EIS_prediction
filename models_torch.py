@@ -20,7 +20,7 @@ class Trainer(nn.Module):
     pulse = self.dense1(pulse) # pulse.shape = (batch, seq_len, 2)
     pulse = torch.permute(pulse, (1,0,2)) # pulse.shape = (seq_len, batch, 2)
     _, state = self.rnns(pulse) # state.shape = (layer_num, batch, channels)
-    sos = torch.zeros((1, batch)).to(torch.int32) # sos.shape = (1, batch)
+    sos = torch.zeros((1, batch)).to(torch.int32).to(pulse.device) # sos.shape = (1, batch)
     eis_embed = self.embed(sos) # eis_embed.shape = (1, batch, channels)
     latest_eis_embed = eis_embed
     for i in range(35):
