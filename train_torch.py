@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import torchmetrics
 from create_dataset_torch import EISDataset
-from models_torch import Predictor
+from models_torch import Trainer
 
 FLAGS = flags.FLAGS
 
@@ -31,7 +31,7 @@ def main(unused_argv):
   print('trainset size: %d, evalset size: %d' % (len(trainset), len(evalset)))
   train_dataloader = DataLoader(trainset, batch_size = FLAGS.batch_size, shuffle = True, num_workers = FLAGS.batch_size)
   eval_dataloader = DataLoader(evalset, batch_size = FLAGS.batch_size, shuffle = True, num_workers = FLAGS.batch_size)
-  model = Predictor()
+  model = Trainer()
   model.to(device(FLAGS.device))
   mae = L1Loss()
   optimizer = Adam(model.parameters(), lr = FLAGS.lr)
