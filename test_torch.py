@@ -29,7 +29,7 @@ def main(unused_argv):
   evalset = EISDataset(join(FLAGS.dataset, 'val'))
   dataset = DataLoader(evalset, batch_size = FLAGS.batch_size, shuffle = True, num_workers = FLAGS.batch_size)
   global_index = 0
-  max_dist = tf.constant(0, dtype = tf.float32)
+  max_dist = np.array(0., dtype = np.float32)
   for pulse, label in dataset:
     pulse, label = pulse.to(device('cuda')), label.to(device('cuda'))
     eis = trainer(pulse)
@@ -42,9 +42,9 @@ def main(unused_argv):
       plt.legend()
       plt.savefig('%d.png' % global_index)
       global_index += 1
-    dist = tf.math.sqrt(tf.math.reduce_sum((eis - label) ** 2, axis = -1)) # diff.shape = (batch, 35)
-    m_dist = tf.math.reduce_max(dist, axis = (0,1)) # m_dist.shape = ()
-    max_dist = tf.maximum(max_dist, m_dist)
+    dist = np.sqrt(np.sum((eis - label) ** 2, axis = -1)) # diff.shape = (batch, 35)
+    m_dist = np.max(dist, axis = (0,1)) # m_dist.shape = ()
+    max_dist = np.maximum(max_dist, m_dist)
   print("max distance: ", max_dist)
 
 if __name__ == "__main__":
