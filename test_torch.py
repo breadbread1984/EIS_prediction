@@ -37,8 +37,8 @@ def main(unused_argv):
     for p, l in zip(eis, label):
       # p.shape = (35,2) l.shape = (35,2)
       plt.cla()
-      plt.plot(p[:,0].numpy(),p[:,1],label = 'prediction')
-      plt.plot(l[:,0].numpy(),l[:,1],label = 'ground truth')
+      plt.plot(p[:,0],p[:,1],label = 'prediction')
+      plt.plot(l[:,0],l[:,1],label = 'ground truth')
       plt.legend()
       plt.savefig('%d.png' % global_index)
       global_index += 1
