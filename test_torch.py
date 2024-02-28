@@ -31,14 +31,14 @@ def main(unused_argv):
   global_index = 0
   max_dist = np.array(0., dtype = np.float32)
   for pulse, label in dataset:
-    pulse, label = pulse.to(device('cuda')), label.to(device('cuda'))
+    pulse, label = pulse.to(device('cuda')), label.numpy()
     eis = trainer(pulse)
     eis = eis.detach().cpu().numpy()
     for p, l in zip(eis, label):
       # p.shape = (35,2) l.shape = (35,2)
       plt.cla()
-      plt.plot(p[:,0].numpy(),p[:,1].numpy(),label = 'prediction')
-      plt.plot(l[:,0].numpy(),l[:,1].numpy(),label = 'ground truth')
+      plt.plot(p[:,0].numpy(),p[:,1],label = 'prediction')
+      plt.plot(l[:,0].numpy(),l[:,1],label = 'ground truth')
       plt.legend()
       plt.savefig('%d.png' % global_index)
       global_index += 1
