@@ -8,7 +8,7 @@ class Trainer(nn.Module):
     super(Trainer, self).__init__()
     self.channels = kwargs.get('channels', 64)
     self.rate = kwargs.get('rate', 0.2)
-    self.layer_num = kwargs.get('layer_num', 2)
+    self.layer_num = kwargs.get('layer_num', 4)
 
     self.dense1 = nn.Linear(2, self.channels)
     self.dense2 = nn.Linear(self.channels, 2)

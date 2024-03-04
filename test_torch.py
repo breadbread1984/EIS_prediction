@@ -34,6 +34,7 @@ def main(unused_argv):
     pulse, label = pulse.to(device('cuda')), label.numpy()
     eis = trainer(pulse)
     eis = eis.detach().cpu().numpy()
+    eis = np.stack([np.exp(eis[:,0]), np.log(eis[:,1])], axis = -1)
     for p, l in zip(eis, label):
       # p.shape = (35,2) l.shape = (35,2)
       plt.cla()
