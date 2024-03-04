@@ -28,6 +28,8 @@ def parse_function(serialized_example):
   x = tf.reshape(x, (1800, 2))
   y = tf.io.parse_tensor(feature['y'], out_type = tf.float64)
   y = tf.reshape(y, (35, 2))
+  x = tf.experimental.numpy.arcsinh(x)
+  y = tf.experimental.numpy.arcsinh(y)
   return tf.cast(x, dtype = tf.float32), tf.cast(y, dtype = tf.float32)
 
 def main(unused_argv):
