@@ -2,27 +2,21 @@
 
 import tensorflow as tf
 
-def Trainer(channels = 1, rate = 0.2, layers = 1):
-  inputs = tf.keras.Input((1800, 2)) # pulse.shape = (batch, seq_len, 2)
-  results = inputs
-  results = tf.keras.layers.Dense(channels, use_bias  = False)(results)
-  results = tf.keras.layers.Dropout(rate)(results)
-  for i in range(layers):
-    # spatial mix
-    results = tf.keras.layers.Lambda(lambda x: tf.transpose(x, (0,2,1)))(results)
-    results = tf.keras.layers.LayerNormalization()(results)
-    results = tf.keras.layers.Dense(35, use_bias = False)(results)
-    results = tf.keras.layers.Dropout(rate)(results)
-    results = tf.keras.layers.Lambda(lambda x: tf.transpose(x, (0,2,1)))(results)
-    # channel mix
-    results = tf.keras.layers.LayerNormalization()(results)
-    results = tf.keras.layers.Dense(channels * 4, use_bias = False, activation = tf.keras.activations.gelu)(results)
-    results = tf.keras.layers.Dropout(rate)(results)
-    results = tf.keras.layers.LayerNormalization()(results)
-    results = tf.keras.layers.Dense(channels, use_bias = False, activation = tf.keras.activations.gelu)(results)
-    results = tf.keras.layers.Dropout(rate)(results)
-  results = tf.keras.layers.Dense(2)(results)
-  return tf.keras.Model(inputs = inputs, outputs = results)
+def Trainer(hidden_dim = 256, layers = 3):
+  pulse = tf.keras.Input((None, 2)) # pulse.shape = (batch, seq_len, 2)
+  pulse_embed = tf.keras.layers.Dense(hidden_dim)(pulse) # pulse_embed.shape = (batch, seq_len, channels)
+  gru = tf.keras.layers.RNN([tf.keras.layers.GRUCell(hidden_dim) for i in range(layers)], return_sequences = True, return_state = True)
+  state = gru(pulse_embed)[1:]
+  sos = tf.keras.layers.Lambda(lambda x: tf.zeros(shape = (tf.shape(x)[0],1)))(pulse) # sos.shape = (batch,1)
+  eis_embed = tf.keras.layers.Embedding(1, hidden_dim)(sos) # eis_embed.shape = (batch,1,channels)
+  latest_eis_embed = eis_embed
+  for i in range(35):
+    outputs = gru(latest_eis_embed, initial_state = state) # results.shape = (batch, query_len, channels)
+    latest_eis_embed, state = outputs[0], outputs[1:]
+    eis_embed = tf.keras.layers.Lambda(lambda x: tf.concat([x[0],x[1]], axis = -2))([eis_embed, latest_eis_embed]) # eis_embed.shape = (batch, query_len + 1, channels)
+  pred = tf.keras.layers.Dense(2)(eis_embed) # pred.shape = (batch, quey_len, 2)
+  eis = tf.keras.layers.Lambda(lambda x: x[:,1:,:])(pred)
+  return tf.keras.Model(inputs = pulse, outputs = eis)
 
 if __name__ == "__main__":
   trainer = Trainer(layers = 2)
