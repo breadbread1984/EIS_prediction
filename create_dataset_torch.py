@@ -57,7 +57,7 @@ class EISDataset(Dataset):
   def __getitem__(self, idx):
     data = np.load(self.file_list[idx])
     x, y = data['x'].astype(np.float32), data['y'].astype(np.float32)
-    y = np.stack([np.log(y[:,0]),np.exp(y[:,1])], axis = -1)
+    y = np.arcsinh(y)
     return x, y
 
 if __name__ == "__main__":
