@@ -28,13 +28,12 @@ def parse_function(serialized_example):
   x = tf.reshape(x, (1800, 2))
   y = tf.io.parse_tensor(feature['y'], out_type = tf.float64)
   y = tf.reshape(y, (35, 2))
-  x = tf.experimental.numpy.arcsinh(x)
   y = tf.experimental.numpy.arcsinh(y)
   return tf.cast(x, dtype = tf.float32), tf.cast(y, dtype = tf.float32)
 
 def loss(label,pred):
   dists = tf.math.sqrt(tf.math.reduce_sum((label - pred)**2, axis = -1))
-  loss = tf.math.reduce_max(dists)
+  loss = tf.math.reduce_mean(dists)
   return loss
 
 def main(unused_argv):

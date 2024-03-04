@@ -2,7 +2,7 @@
 
 import tensorflow as tf
 
-def Trainer(hidden_dim = 256, drop_rate = 0.1, layer_num = 1):
+def Trainer(hidden_dim = 256, drop_rate = 0.1, layer_num = 2):
   inputs = tf.keras.Input((1800, 2)) # pulse.shape = (batch, seq_len, 2)
   results = tf.keras.layers.Flatten()(inputs) # results.shape = (batch, seq_len * 2)
   for i in range(layer_num):

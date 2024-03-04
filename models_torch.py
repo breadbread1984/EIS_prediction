@@ -6,29 +6,30 @@ from torch import nn
 class Trainer(nn.Module):
   def __init__(self, **kwargs):
     super(Trainer, self).__init__()
-    self.channels = kwargs.get('channels', 64)
+    self.channels = kwargs.get('channels', 256)
     self.rate = kwargs.get('rate', 0.2)
     self.layer_num = kwargs.get('layer_num', 4)
 
-    self.dense1 = nn.Linear(2, self.channels)
-    self.dense2 = nn.Linear(self.channels, 2)
-    self.rnns = nn.GRU(self.channels, self.channels, self.layer_num)
-    self.embed = nn.Embedding(1, self.channels)
+    self.layernorm = nn.LayerNorm([self.channels,])
+    self.dense = nn.Linear(self.channels, 35 * 2)
+    layers = dict()
+    for i in range(self.layer_num):
+      layers['layernorm_%d' % i] = nn.LayerNorm([1800*2 if i == 0 else self.channels])
+      layers['dense_%d' % i] = nn.Linear(1800*2 if i == 0 else self.channels, self.channels)
+      layers['gelu_%d' % i] = nn.GELU()
+      layers['dropout_%d' % i] = nn.Dropout(self.rate)
+    self.layers = nn.ModuleDict(layers)
   def forward(self, pulse):
     # pulse.shape = (batch, seq_len, 2)
-    batch = pulse.shape[0]
-    pulse = self.dense1(pulse) # pulse.shape = (batch, seq_len, 2)
-    pulse = torch.permute(pulse, (1,0,2)) # pulse.shape = (seq_len, batch, 2)
-    _, state = self.rnns(pulse) # state.shape = (layer_num, batch, channels)
-    sos = torch.zeros((1, batch)).to(torch.int32).to(pulse.device) # sos.shape = (1, batch)
-    eis_embed = self.embed(sos) # eis_embed.shape = (1, batch, channels)
-    latest_eis_embed = eis_embed
-    for i in range(35):
-      latest_eis_embed, state = self.rnns(latest_eis_embed, state)
-      eis_embed = torch.cat([eis_embed, latest_eis_embed], dim = 0) # eis_embed.shape = (seq_len + 1, batch, channels)
-    eis_embed = torch.permute(eis_embed, (1,0,2)) # eis_embed.shape = (batch, seq_len + 1, channels)
-    pred = self.dense2(eis_embed) # pred.shape = (batch, seq_len + 1, 2)
-    eis = pred[:,1:,:]
+    results = torch.flatten(pulse, 1) # results.shape = (batch, seq_len * 2)
+    for i in range(self.layer_num):
+      results = self.layers['layernorm_%d' % i](results)
+      results = self.layers['dense_%d' % i](results)
+      results = self.layers['gelu_%d' % i](results)
+      results = self.layers['dropout_%d' % i](results)
+    results = self.layernorm(results)
+    results = self.dense(results)
+    eis = torch.reshape(results, (-1, 35, 2))
     return eis
 
 if __name__ == "__main__":
