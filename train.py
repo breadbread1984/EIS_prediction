@@ -33,7 +33,7 @@ def parse_function(serialized_example):
 
 def loss(label,pred):
   dists = tf.math.sqrt(tf.math.reduce_sum((label - pred)**2, axis = -1))
-  loss = tf.math.reduce_mean(dists)
+  loss = tf.math.reduce_max(dists)
   return loss
 
 def main(unused_argv):
