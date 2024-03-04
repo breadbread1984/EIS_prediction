@@ -38,7 +38,7 @@ def main(unused_argv):
   global_index = 0
   max_dist = tf.constant(0, dtype = tf.float32)
   for pulse, label in dataset:
-    eis = trainer(pulse)
+    eis = tf.math.log(trainer(pulse))
     for p, l in zip(eis, label):
       # p.shape = (35,2) l.shape = (35,2)
       plt.cla()
