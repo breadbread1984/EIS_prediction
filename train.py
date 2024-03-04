@@ -28,7 +28,7 @@ def parse_function(serialized_example):
   x = tf.reshape(x, (1800, 2))
   y = tf.io.parse_tensor(feature['y'], out_type = tf.float64)
   y = tf.reshape(y, (35, 2))
-  y = tf.stack([tf.math.exp(y[:,0]),tf.math.log(y[:,1])], axis = -1)
+  y = tf.stack([tf.math.log(y[:,0]),tf.math.exp(y[:,1])], axis = -1)
   return tf.cast(x, dtype = tf.float32), tf.cast(y, dtype = tf.float32)
 
 def loss(label,pred):
